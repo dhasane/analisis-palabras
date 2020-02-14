@@ -66,16 +66,3 @@ def imp(mat)
   #     puts
   # end
 end
-
-pal1 = 'bventur'
-# # pal2 = "buenaventura"
-pal2 = 'buenaventura'
-
-# pal1 = 'cotachiacota'
-# pal2 = 'xchiaes'
-
-# # puts "#{hamming(pal1,pal2)}"
-#
-imp(mmat(pal1, pal2))
-imp(dist(pal1, pal2))
-# # imp( dist( pal1, pal1  ) )
