@@ -23,15 +23,6 @@ def prt(mat, col = '')
   end
 end
 
-# para eliminar las tildes y dejar la palabra en minuscula
-def normalizar(str)
-  str.downcase
-     .gsub('á', 'a')
-     .gsub('é', 'e')
-     .gsub('í', 'i')
-     .gsub('ó', 'o')
-     .gsub('ú', 'u')
-end
 
 input = ARGV
 tabla = cargar(input[0])
@@ -50,7 +41,7 @@ pal2 = 'buenaventura'
 
 # # puts "#{hamming(pal1,pal2)}"
 #
-imp(mmat(pal1, pal2))
+imp(equivalente_a_palabra(pal1, pal2))
 imp(dist(pal1, pal2))
 # imp( dist( pal1, pal1  ) )
 puts normalizar('qUé MáS')
