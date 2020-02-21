@@ -41,11 +41,12 @@ class Nodito
   def find_context(contexto, numero_palabra, iter, palabra)
     if !@children[contexto[numero_palabra][iter]].nil?
       # puts '\'' + contexto[numero_palabra][iter] + '\''
+      # puts contexto[numero_palabra][iter]
       @children[contexto[numero_palabra][iter]]
         .find_context(contexto, numero_palabra, iter + 1, palabra)
     elsif !@children[' '].nil? && numero_palabra + 1 < contexto.size
       # palabra actual mas la siguiente
-      palabra += contexto[numero_palabra]
+      palabra += contexto[numero_palabra] + ' '
       @children[' '].find_context(contexto, numero_palabra + 1, 0, palabra)
     else
       # es la ultima letra de esta palabra el final de una palabra?
@@ -68,12 +69,11 @@ class Arbolito
     @root = {}
   end
 
-  # se ingesa la palabra al arbol
+  # se ingesa una palabra normalizada al arbol
   # se supone no esta vacia
   def add(word)
     return if word.nil?
 
-    word = normalizar(word)
     # se crea el nuevo nodo, en caso de que previamente no existiera
     @root[word[0]] = Nodito.new(word[0]) if @root[word[0]].nil?
     @root[word[0]].add(word[1..-1]) unless word[1..-1].empty?
@@ -82,7 +82,6 @@ class Arbolito
   def find(palabra)
     return if palabra.nil?
 
-    palabra = normalizar(palabra)
     if !@root[palabra[0]].nil?
       @root[palabra[0]].find(palabra[1..-1])
     else
@@ -95,7 +94,7 @@ class Arbolito
   def find_context(contexto, numero_palabra)
     return if contexto.nil? || contexto[numero_palabra].nil?
 
-    contexto = normalizar(contexto).split(' ')
+    # puts contexto[numero_palabra]
     if !@root[contexto[numero_palabra][0]].nil?
       # puts contexto[numero_palabra][0]
       @root[contexto[numero_palabra][0]]
@@ -112,20 +111,9 @@ class Arbolito
       value.prt(0)
     end
   end
-
-  # para eliminar las tildes y dejar la palabra en minuscula
-  # def normalizar(str)
-  #   str.downcase
-  #      .gsub('á', 'a')
-  #      .gsub('é', 'e')
-  #      .gsub('í', 'i')
-  #      .gsub('ó', 'o')
-  #      .gsub('\[úü\]', 'u')
-  #      .gsub('\[,.\]', '')
-  # end
 end
 
-def test
+def test_arbol
   tri = Arbolito.new
   tri.add('holaaa')
   tri.add('holae')
@@ -139,4 +127,66 @@ def test
   end
 end
 
-# test
+# representa un conjunto de arboles de decision
+class Bosquesito
+  Contenedor = Struct.new(:nombre, :contenido)
+  def initialize
+    # representa las categorias sobre las que se buscara
+    @arboles = []
+  end
+
+  def agregar_arbol(nombre, datos)
+    tree = Arbolito.new
+
+    # start = Time.now
+    datos.each do |val|
+      tree.add(normalizar(val))
+    end
+
+    cc = Contenedor.new
+    cc.contenido = tree
+    cc.nombre = nombre
+
+    @arboles << cc
+  end
+
+  # normaliza el texto, haciendo mas facil su busqueda
+  def normalizar(str)
+    str.downcase
+       .gsub('á', 'a')
+       .gsub('é', 'e')
+       .gsub('í', 'i')
+       .gsub('ó', 'o')
+       .gsub('/[úü]/', 'u')
+       .delete('^a-zñÑA-Z0-9 ')
+    # .gsub('/[,.]/', '')
+  end
+
+  # Info = Struct.new(:nombre,:)
+  def verificar(text)
+    return if text.nil?
+
+    # start = Time.now
+    text.each do |relato|
+      next if relato.nil?
+
+      found = false
+
+      # cada palabra probarla en todos los arboles
+      palabras = normalizar(relato).split(' ')
+      palabras.each_index do |i|
+        # info = Contenedor.new
+        @arboles.each do |tree|
+          ver = tree.contenido.find_context(palabras, i)
+          puts tree.nombre.to_s + '  ' + ver.to_s unless ver.empty?
+          found ||= !ver.empty?
+        end
+      end
+      puts
+      puts relato # + "\n--------------" unless found
+      puts '\n--------------------------------------'
+    end
+    # finish = Time.now
+    # puts "demora total : #{finish - start}"
+  end
+end

@@ -1,6 +1,8 @@
 #!/bin/ruby
 
 require 'csv'
+require 'optparse'
+
 require_relative 'distancias.rb'
 require_relative 'tri.rb'
 
@@ -23,93 +25,31 @@ def prt(mat, col = '')
   end
 end
 
-def construir_arbol(datos)
-  tr1 = Arbolito.new
+options = {}
+OptionParser.new do |opt|
+  opt.on('-f', '--file FILENAME') { |o| options[:file] = o }
+  opt.on('-a', '--analize FILENAME') { |o| options[:analyze] = o }
+end.parse!
 
-  # start = Time.now
-  datos.each do |val|
-    tr1.add(val)
-  end
-  tr1
-  # finish = Time.now
-  # diff = finish - start
-  # puts diff
-  # tr1.prt
-end
+puts options
 
-def normalizar(str)
-  str.downcase
-     .gsub('á', 'a')
-     .gsub('é', 'e')
-     .gsub('í', 'i')
-     .gsub('ó', 'o')
-     .gsub('/[úü]/', 'u')
-     .delete('^a-zñÑA-Z0-9 ')
-  # .gsub('/[,.]/', '')
-end
+# input = ARGV
 
-def verificar(tree, text)
-  start = Time.now
-  text.each do |relato|
-    next if relato.nil?
-
-    # found = false
-
-    # relato.split(' ').each_index do |i|
-    #   ver = tree.find_context(relato, i)
-    #   puts ver unless ver.empty?
-    # end
-    # break
-    palabras = normalizar(relato).split(' ')
-    palabras.each do |palabra|
-      # imprime la palabra sin limpiarla
-      # se podria mas bien ingresar esto a una lista
-      # para sacar uniq y poderlo organizar mejor
-      if tree.find(palabra)
-        puts palabra.to_s
-        # found = true
-      end
-    end
-    # break
-    # puts relato if !found
-    puts '--------------------------------------'
-  end
-  finish = Time.now
-  puts "demora total : #{finish - start}"
-end
-
-input = ARGV
-veredas = cargar(input[0])
-tabla = cargar(input[1])
+# esto eventualmente seria chevere ponerlo como opciones decentes
+# de lineas de comando a lo: palabras -archivos a1,a2,a3,etc -analisis a1
+veredas = cargar(options.file)
+tabla = cargar(options.analyze)
 
 # puts tabla['municipio']
-tre = construir_arbol(veredas['municipio'])
-# tre.prt
+bsq = Bosquesito.new
+bsq.agregar_arbol('departamento', veredas['departamento'])
+bsq.agregar_arbol('municipio', veredas['municipio'])
+bsq.agregar_arbol('vereda', veredas['vereda'])
 
-verificar(tre, tabla['text'])
+bsq.verificar(tabla['text'])
 
 
 
-
-#
-# # de aqui en adelante son pruebas terriblemente desorganizadas
-#
-# prt(tabla, 'text')
-# # prt(tabla)
-#
-# pal1 = 'bventur'
-# # # pal2 = "buenaventura"
-# pal2 = 'buenaventura'
-#
-# # pal1 = 'cotachiacota'
-# # pal2 = 'xchiaes'
-#
-# # # puts "#{hamming(pal1,pal2)}"
-# #
-# imp(equivalente_a_palabra(pal1, pal2))
-# imp(dist(pal1, pal2))
-# # imp( dist( pal1, pal1  ) )
-# puts normalizar('qUé MáS')
 
 # todas las posibles opciones de columnas
 
