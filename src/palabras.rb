@@ -9,7 +9,7 @@ def cargar(nombre)
   CSV.parse(File.read(nombre.to_s), headers: true)
 end
 
-# imprime la matriz entera, en caso de especificar una columna
+# imprime la matriz entera (csv), en caso de especificar una columna
 # imprimira todos los valores en esa columna
 def prt(mat, col = '')
   if !col.empty?
@@ -37,19 +37,41 @@ def construir_arbol(datos)
   # tr1.prt
 end
 
+def normalizar(str)
+  str.downcase
+     .gsub('á', 'a')
+     .gsub('é', 'e')
+     .gsub('í', 'i')
+     .gsub('ó', 'o')
+     .gsub('/[úü]/', 'u')
+     .delete('^a-zñÑA-Z0-9 ')
+  # .gsub('/[,.]/', '')
+end
+
 def verificar(tree, text)
   start = Time.now
   text.each do |relato|
     next if relato.nil?
 
-    # puts relato
-    relato.split(' ').each do |palabra|
+    # found = false
+
+    # relato.split(' ').each_index do |i|
+    #   ver = tree.find_context(relato, i)
+    #   puts ver unless ver.empty?
+    # end
+    # break
+    palabras = normalizar(relato).split(' ')
+    palabras.each do |palabra|
       # imprime la palabra sin limpiarla
       # se podria mas bien ingresar esto a una lista
       # para sacar uniq y poderlo organizar mejor
-      puts palabra.to_s if tree.find(palabra)
+      if tree.find(palabra)
+        puts palabra.to_s
+        # found = true
+      end
     end
     # break
+    # puts relato if !found
     puts '--------------------------------------'
   end
   finish = Time.now

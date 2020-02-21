@@ -36,6 +36,23 @@ class Nodito
     end
   end
 
+  # es necesario tener en cuenta el contexto para
+  # nombres con mas de una palabra
+  def find_context(contexto, numero_palabra, iter, palabra)
+    if !@children[contexto[numero_palabra][iter]].nil?
+      # puts '\'' + contexto[numero_palabra][iter] + '\''
+      @children[contexto[numero_palabra][iter]]
+        .find_context(contexto, numero_palabra, iter + 1, palabra)
+    elsif !@children[' '].nil? && numero_palabra + 1 < contexto.size
+      # palabra actual mas la siguiente
+      palabra += contexto[numero_palabra]
+      @children[' '].find_context(contexto, numero_palabra + 1, 0, palabra)
+    else
+      # es la ultima letra de esta palabra el final de una palabra?
+      @leaf ? palabra + contexto[numero_palabra] : ''
+    end
+  end
+
   def prt(profundidad)
     bar = @leaf ? '|' : '' # representa final de palabras
     puts profundidad.to_s + "\t" + '-' * profundidad + bar + @letter.to_s + bar
@@ -73,6 +90,22 @@ class Arbolito
     end
   end
 
+  # es necesario tener en cuenta el contexto para
+  # nombres con mas de una palabra
+  def find_context(contexto, numero_palabra)
+    return if contexto.nil? || contexto[numero_palabra].nil?
+
+    contexto = normalizar(contexto).split(' ')
+    if !@root[contexto[numero_palabra][0]].nil?
+      # puts contexto[numero_palabra][0]
+      @root[contexto[numero_palabra][0]]
+        .find_context(contexto, numero_palabra, 1, '')
+    else
+      # false # la primera letra no fue encontrada
+      ''
+    end
+  end
+
   def prt
     puts 'palabras entre || son finales de palabra'
     @root.each do |_key, value|
@@ -81,13 +114,29 @@ class Arbolito
   end
 
   # para eliminar las tildes y dejar la palabra en minuscula
-  def normalizar(str)
-    str.downcase
-       .gsub('á', 'a')
-       .gsub('é', 'e')
-       .gsub('í', 'i')
-       .gsub('ó', 'o')
-       .gsub('\[úü\]', 'u')
-       .gsub('\[,.\]', '')
+  # def normalizar(str)
+  #   str.downcase
+  #      .gsub('á', 'a')
+  #      .gsub('é', 'e')
+  #      .gsub('í', 'i')
+  #      .gsub('ó', 'o')
+  #      .gsub('\[úü\]', 'u')
+  #      .gsub('\[,.\]', '')
+  # end
+end
+
+def test
+  tri = Arbolito.new
+  tri.add('holaaa')
+  tri.add('holae')
+  tri.add('hilae')
+  tri.add('que mas')
+
+  str = 'que mas cuenta?'
+
+  str.split(' ').each_index do |i|
+    puts tri.find_context(str, i)
   end
 end
+
+# test
