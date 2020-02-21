@@ -1,4 +1,3 @@
-
 # nodos del arbol
 class Nodito
   # def initialize(letter, leaf)
@@ -17,20 +16,16 @@ class Nodito
   end
 
   def add(palabra)
-    puts palabra
-    # si es la ultima letra, es final de palabra
+    # si es la ultima letra, es final de palabra, sin importar
+    # que no sea exactamente una hoja del arbol
     @leaf ||= palabra.empty?
 
     if !palabra.empty? && @children[palabra[0]].nil? # se crea el nuevo nodo
-      # @children[palabra[0]] = Nodito.new(palabra[0], final)
       @children[palabra[0]] = Nodito.new(palabra[0])
     end
 
     # va al siguiente, excepto si la palabra - 1 esta vacia
-    # unless palabra[1..-1].empty?
-    unless palabra.empty?
-      @children[palabra[0]].add(palabra[1..-1])
-    end
+    @children[palabra[0]].add(palabra[1..-1]) unless palabra.empty?
   end
 
   def find(palabra)
@@ -42,8 +37,8 @@ class Nodito
   end
 
   def prt(profundidad)
-    leaf = @leaf ? '|' : ''
-    puts profundidad.to_s + '--' * profundidad + ' ' +leaf+ @letter.to_s+leaf
+    bar = @leaf ? '|' : '' # representa final de palabras
+    puts profundidad.to_s + "\t" + '-' * profundidad + bar + @letter.to_s + bar
     @children.each do |_key, value|
       value.prt(profundidad + 1)
     end
@@ -59,15 +54,17 @@ class Arbolito
   # se ingesa la palabra al arbol
   # se supone no esta vacia
   def add(word)
+    return if word.nil?
+
     word = normalizar(word)
-    puts word
-    if @root[word[0]].nil? # se crea el nuevo
-      @root[word[0]] = Nodito.new(word[0])
-    end
+    # se crea el nuevo nodo, en caso de que previamente no existiera
+    @root[word[0]] = Nodito.new(word[0]) if @root[word[0]].nil?
     @root[word[0]].add(word[1..-1]) unless word[1..-1].empty?
   end
 
   def find(palabra)
+    return if palabra.nil?
+
     palabra = normalizar(palabra)
     if !@root[palabra[0]].nil?
       @root[palabra[0]].find(palabra[1..-1])
@@ -77,6 +74,7 @@ class Arbolito
   end
 
   def prt
+    puts 'palabras entre || son finales de palabra'
     @root.each do |_key, value|
       value.prt(0)
     end
@@ -89,19 +87,7 @@ class Arbolito
        .gsub('é', 'e')
        .gsub('í', 'i')
        .gsub('ó', 'o')
-       .gsub('ú', 'u')
+       .gsub('\[úü\]', 'u')
+       .gsub('\[,.\]', '')
   end
 end
-
-hola = 'holaaaáéíóúaa'
-tri = Arbolito.new
-
-tri.add(hola)
-tri.add('holi')
-tri.add('holii')
-tri.add('oleo')
-tri.add('ole')
-puts tri.find(hola)
-# puts tri.find('kiubo')
-
-tri.prt

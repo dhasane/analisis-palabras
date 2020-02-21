@@ -2,11 +2,11 @@
 
 require 'csv'
 require_relative 'distancias.rb'
+require_relative 'tri.rb'
 
 # carga los datos de un archivo csv
 def cargar(nombre)
-  datos = CSV.parse(File.read(nombre.to_s), headers: true)
-  datos
+  CSV.parse(File.read(nombre.to_s), headers: true)
 end
 
 # imprime la matriz entera, en caso de especificar una columna
@@ -23,28 +23,71 @@ def prt(mat, col = '')
   end
 end
 
+def construir_arbol(datos)
+  tr1 = Arbolito.new
+
+  # start = Time.now
+  datos.each do |val|
+    tr1.add(val)
+  end
+  tr1
+  # finish = Time.now
+  # diff = finish - start
+  # puts diff
+  # tr1.prt
+end
+
+def verificar(tree, text)
+  start = Time.now
+  text.each do |relato|
+    next if relato.nil?
+
+    # puts relato
+    relato.split(' ').each do |palabra|
+      # imprime la palabra sin limpiarla
+      # se podria mas bien ingresar esto a una lista
+      # para sacar uniq y poderlo organizar mejor
+      puts palabra.to_s if tree.find(palabra)
+    end
+    # break
+    puts '--------------------------------------'
+  end
+  finish = Time.now
+  puts "demora total : #{finish - start}"
+end
 
 input = ARGV
-tabla = cargar(input[0])
+veredas = cargar(input[0])
+tabla = cargar(input[1])
 
-# de aqui en adelante son pruebas terriblemente desorganizadas
+# puts tabla['municipio']
+tre = construir_arbol(veredas['municipio'])
+# tre.prt
 
-prt(tabla, 'text')
-# prt(tabla)
+verificar(tre, tabla['text'])
 
-pal1 = 'bventur'
-# # pal2 = "buenaventura"
-pal2 = 'buenaventura'
 
-# pal1 = 'cotachiacota'
-# pal2 = 'xchiaes'
 
-# # puts "#{hamming(pal1,pal2)}"
+
 #
-imp(equivalente_a_palabra(pal1, pal2))
-imp(dist(pal1, pal2))
-# imp( dist( pal1, pal1  ) )
-puts normalizar('qUé MáS')
+# # de aqui en adelante son pruebas terriblemente desorganizadas
+#
+# prt(tabla, 'text')
+# # prt(tabla)
+#
+# pal1 = 'bventur'
+# # # pal2 = "buenaventura"
+# pal2 = 'buenaventura'
+#
+# # pal1 = 'cotachiacota'
+# # pal2 = 'xchiaes'
+#
+# # # puts "#{hamming(pal1,pal2)}"
+# #
+# imp(equivalente_a_palabra(pal1, pal2))
+# imp(dist(pal1, pal2))
+# # imp( dist( pal1, pal1  ) )
+# puts normalizar('qUé MáS')
 
 # todas las posibles opciones de columnas
 
