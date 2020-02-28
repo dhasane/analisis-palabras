@@ -11,6 +11,12 @@ def cargar(nombre)
   CSV.parse(File.read(nombre.to_s), headers: true)
 end
 
+def guardar(nombre, archivo)
+  CSV.open("#{nombre}.cvs", 'ab') do |csv|
+    csv << archivo
+  end
+end
+
 # imprime la matriz entera (csv), en caso de especificar una columna
 # imprimira todos los valores en esa columna
 def prt(mat, col = '')
@@ -23,6 +29,38 @@ def prt(mat, col = '')
       puts val
     end
   end
+end
+
+# normaliza el texto, haciendo mas facil su busqueda
+def normalizar(str)
+  str.downcase
+     .gsub('á', 'a')
+     .gsub('é', 'e')
+     .gsub('í', 'i')
+     .gsub('ó', 'o')
+     .gsub(/[úü]/, 'u')
+     .delete('^a-zñÑA-Z0-9 ')
+     .gsub(/\s+/, ' ')
+end
+
+def normalizar_nombre(str)
+  normalizar(str)
+    .delete('^a-zñÑA-Z ')
+end
+
+def limpiar(table, eliminar)
+  table = (table.map! { |v| normalizar_nombre(v) }).uniq
+
+  table.delete_if do |val|
+    del = false
+    if val.empty?
+      del = true
+    elsif !eliminar.empty?
+      eliminar.each { |elim| del ||= val.include? elim }
+    end
+    del
+  end
+  table
 end
 
 i_f = []
@@ -38,21 +76,38 @@ end.parse!
 
 # input = ARGV
 
+start = Time.now
+
 # esto eventualmente seria chevere ponerlo como opciones decentes
 # de lineas de comando a lo: palabras -archivos a1,a2,a3,etc -analisis a1
 veredas = cargar(i_f)
 tabla = cargar(i_a)
 
+
 # puts tabla['municipio']
 bsq = Bosquesito.new
-bsq.agregar_arbol('departamento', veredas['departamento'])
-bsq.agregar_arbol('municipio', veredas['municipio'])
-bsq.agregar_arbol('vereda', veredas['vereda'])
 
-bsq.verificar(tabla['text'])
+dep = limpiar(veredas['departamento'], [])
+muni = limpiar(veredas['municipio'], [])
+vere = limpiar(veredas['vereda'], ['sin definir'])
+
+guardar('departamento', dep)
+guardar('municipio', muni)
+guardar('vereda', vere)
+# puts vere
+
+bsq.agregar_arbol('departamento', dep)
+bsq.agregar_arbol('municipio', muni)
+bsq.agregar_arbol('vereda', vere)
+#
+# # el texto en el cual se buscaran las palabras
+# bsq.verificar(tabla['text'])
+#
 
 
 
+finish = Time.now
+puts "demora total : #{finish - start}"
 
 # todas las posibles opciones de columnas
 

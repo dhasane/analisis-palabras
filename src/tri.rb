@@ -150,24 +150,12 @@ class Bosquesito
     @arboles << cc
   end
 
-  # normaliza el texto, haciendo mas facil su busqueda
-  def normalizar(str)
-    str.downcase
-       .gsub('á', 'a')
-       .gsub('é', 'e')
-       .gsub('í', 'i')
-       .gsub('ó', 'o')
-       .gsub('/[úü]/', 'u')
-       .delete('^a-zñÑA-Z0-9 ')
-    # .gsub('/[,.]/', '')
-  end
 
   # Info = Struct.new(:nombre,:)
   # falta realizar varios saltos para evitar volver a contar una palabra
   def verificar(text)
     return if text.nil?
 
-    # start = Time.now
     text.each do |relato|
       next if relato.nil?
 
@@ -189,8 +177,6 @@ class Bosquesito
       # break
       # puts '\n--------------------------------------'
     end
-    # finish = Time.now
-    # puts "demora total : #{finish - start}"
   end
 
   # siendo contexto, una lista de palabras, frase lo que se tendrá en cuenta y
@@ -201,9 +187,6 @@ class Bosquesito
     pre = contexto[posicion - entorno..posicion - 1]
     pos = contexto[posicion + tam..posicion + entorno + tam]
     "#{pre} #{frase} #{pos}"
-    # puts pre.to_s
-    # puts frase
-    # puts pos.to_s
   end
 
 end
