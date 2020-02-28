@@ -78,6 +78,8 @@ def verificar(tree, text)
   puts "demora total : #{finish - start}"
 end
 
+
+=begin 
 input = ARGV
 veredas = cargar(input[0])
 tabla = cargar(input[1])
@@ -87,7 +89,7 @@ tre = construir_arbol(veredas['municipio'])
 # tre.prt
 
 verificar(tre, tabla['text'])
-
+=end
 
 
 
@@ -280,3 +282,4 @@ verificar(tre, tabla['text'])
 
 
 # puts cargar('analizar.csv')
+

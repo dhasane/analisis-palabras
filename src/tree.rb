@@ -59,6 +59,7 @@ end
 #populate method should receive a list and create tree.
 #for now tree structure is cute 
 
+=begin
 groot = Phnamefn.new('',false)
 groot.addchild( Phnamefn.new('z',false) )
 
@@ -69,3 +70,30 @@ end
 
 puts groot.test()
 dive(groot,'-')
+
+=end
+
+#what i need: get words close to reg_ex
+
+data = "la vereda de la salle y mas mas, asdlorem impsum. dolor sit vereda amen. dataextra"
+VdaRe = %r{
+    vereda      #figured out the regex
+    ([^\.]+     #start with vereda
+    \.)         #things that can appear but don't matter
+    }x          #ends on next dot
+
+
+
+
+
+
+matchData = data.to_enum(:scan,VdaRe).map { Regexp.last_match }
+puts matchData
+#matchData.each { |md| print md }
+=begin
+def matchLine( line, re)
+  line.scan( re ) { |m| puts m.captures.count}
+end
+
+matchLine(data, VdaRe)
+=end
