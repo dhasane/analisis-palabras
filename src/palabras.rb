@@ -25,20 +25,23 @@ def prt(mat, col = '')
   end
 end
 
-options = {}
+i_f = []
+i_a = []
 OptionParser.new do |opt|
-  opt.on('-f', '--file FILENAME') { |o| options[:file] = o }
-  opt.on('-a', '--analize FILENAME') { |o| options[:analyze] = o }
+  # opt.on('-f', '--file FILENAME') { |o| options[:file] = o }
+  opt.on('-f', '--file FILENAME') { |o| i_f = o }
+  opt.on('-a', '--analize FILENAME') { |o| i_a = o }
 end.parse!
 
-puts options
+# puts i_f
+# puts i_a
 
 # input = ARGV
 
 # esto eventualmente seria chevere ponerlo como opciones decentes
 # de lineas de comando a lo: palabras -archivos a1,a2,a3,etc -analisis a1
-veredas = cargar(options.file)
-tabla = cargar(options.analyze)
+veredas = cargar(i_f)
+tabla = cargar(i_a)
 
 # puts tabla['municipio']
 bsq = Bosquesito.new

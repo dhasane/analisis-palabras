@@ -163,6 +163,7 @@ class Bosquesito
   end
 
   # Info = Struct.new(:nombre,:)
+  # falta realizar varios saltos para evitar volver a contar una palabra
   def verificar(text)
     return if text.nil?
 
@@ -171,7 +172,6 @@ class Bosquesito
       next if relato.nil?
 
       found = false
-
       # cada palabra probarla en todos los arboles
       palabras = normalizar(relato).split(' ')
       palabras.each_index do |i|
@@ -179,14 +179,31 @@ class Bosquesito
         @arboles.each do |tree|
           ver = tree.contenido.find_context(palabras, i)
           puts tree.nombre.to_s + '  ' + ver.to_s unless ver.empty?
+          puts ver_contexto(palabras, ver.to_s, i, 5) unless ver.empty?
           found ||= !ver.empty?
         end
       end
       puts
       puts relato # + "\n--------------" unless found
-      puts '\n--------------------------------------'
+      puts '----------------------------------------------'
+      # break
+      # puts '\n--------------------------------------'
     end
     # finish = Time.now
     # puts "demora total : #{finish - start}"
   end
+
+  # siendo contexto, una lista de palabras, frase lo que se tendrá en cuenta y
+  # entorno la cantidad de palabras alrededor de frase
+  def ver_contexto(contexto, frase, posicion, entorno)
+    # puts '----------------------------------------------'
+    tam = frase.split(' ').size
+    pre = contexto[posicion - entorno..posicion - 1]
+    pos = contexto[posicion + tam..posicion + entorno + tam]
+    "#{pre} #{frase} #{pos}"
+    # puts pre.to_s
+    # puts frase
+    # puts pos.to_s
+  end
+
 end
