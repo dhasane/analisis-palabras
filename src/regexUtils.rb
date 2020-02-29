@@ -37,80 +37,88 @@ VdaRe = %r{
   }x
   
 # en l(a|o)s? veredas?([^\.]+\.)
-def matchLine( line, re )
-  line.match( re ) { 
-    |m| return( '\'' + m.captures.join( "','" ) + "\'\n") 
-    }
-end
+
+
 
 #inf.each do |inl|  matchLineOld(inl, VdaRe, of)
 #end
 
 
-mPrefix = {
-    'triv':"",
-    'en_xlx':"en\s(?:el|(?:l(?:a|o)s?))"
-    
+dPrefix = {
+  'triv' => "",
+  'en_xlx'=>"en\s(?:el|(?:l(?:a|o)s?))"
+  
 }
 
-mFixedW = {
-    
-    'vereda':"\sveredas?\s",
-    'municipio':"\smunicipios?\s",
-    
+dWord = {
+  
+  'vereda'=>"\sveredas?\s",
+  'municipio'=>"\smunicipios?\s",
+  
 }
 
-mSuffix = {
-    'triv': "",
-    'next_dot_cap':"([^\.]+\.)",
-
+dSuffix = {
+  'triv'=> "",
+  'next_dot_cap'=>"([^\.]+\.)",
+  
 }
 
 
-#F
+#returns matches as '&&:' separated values string;
+def matchLine( line, re )
+  line.match( re ) { 
+    |m| (m.captures.join( "&&:" ))
+    }
+end
 
 #should create intermediate csv file with id and text only
-
+#returns # of nil/invalid rows
 def preProcessTxt( inPath )
   data = CSV.parse(File.read(inPath.to_s), headers:true )
-  writeBuffIdTx= "'id'\t'text'\n"
+  writeBuffIdTx= "id\ttext\n"
   writeBuffTx= ''
-  
+  nilRows = 0
   data['id'].zip data['text'] do | id , d |
     if( ! ( id.nil? || d.nil? ) )
-      writeBuffTx +=  d
+      writeBuffTx +=  d + "\n"
       #writeBuffIdTx += '"' + id  + '","'+ d + '"' + "\n"
-      writeBuffIdTx +=  id  + "\t" + d + "\n"
+      writeBuffIdTx +=  CSV.generate_line( [id, d ] , :col_sep=>"\t" )
     else
       writeBuffTx += "---------------NIL--------------\n"
+      nilRows+=1
     end
   end
   
-  of  = File.open("../../datos/iD_Text.csv", "w")
+  of  = File.open("../../datos/intermediate/iD_Text.csv", "w")
   of.write( writeBuffIdTx )
   of.close()
-  of  = File.open("../../datos/texts", "w")
+  of  = File.open("../../datos/output/texts.txt", "w")
   of.write( writeBuffTx )
   of.close()
+  nilRows
   
 end
 
-def process(path , pre , word , suf )
+define_method(:process){
+  |path , pre , word , suf |
   #create re
-  data = CSV.parse( File.read(path.to_s), headers:true  )
-  re = mPrefix[pre] + mFixedW[word] + mSuffix[suf]
-  writeBuff = "'id','text'\n"
+  data = CSV.parse( File.read(path.to_s), headers:true , :col_sep=>"\t" )
+  re = dPrefix[pre] + dWord[word] + dSuffix[suf]
+  writeBuff = "id\tmatches\n"
 
   data['id'].zip data['text'] do | id , d|
-    writeBuff += matchLine( d , re )
+    writeBuff += CSV.generate_line( [ id , matchLine( d , re ) ] , :col_sep=>"\t"  )
   end
   puts word
-  filename = "../../Processed/process_" + word + ".csv"
+  filename = "../../datos/intermediate/process::" + [pre,word,suf].join(' ') + ".csv"
  
   of = File.open( filename.to_s , 'w')
   of.write(writeBuff)
   of.close()
-end
+}
 
+
+p 'preprocessing'
 preProcessTxt( "../../datos/"+ARGV[0]+".csv" )
-process('../../datos/iD_Text.csv',mPrefix['en_xlx'], mFixedW['vereda'] ,mSuffix['next_dot_cap'])
+p 'processing'
+process('../../datos/iD_Text.csv','en_xlx', 'vereda' ,'next_dot_cap')
