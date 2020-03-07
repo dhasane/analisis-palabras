@@ -8,11 +8,14 @@ require_relative 'tri.rb'
 
 # carga los datos de un archivo csv
 def cargar(nombre)
-  CSV.parse(File.read(nombre.to_s), headers: true)
+  CSV.parse(
+    File.read(nombre.to_s),
+    headers: true
+  )
 end
 
 def guardar(nombre, archivo)
-  CSV.open("#{nombre}.cvs", 'ab') do |csv|
+  CSV.open("#{nombre}.csv", 'ab') do |csv|
     csv << archivo
   end
 end
@@ -43,13 +46,8 @@ def normalizar(str)
      .gsub(/\s+/, ' ')
 end
 
-def normalizar_nombre(str)
-  normalizar(str)
-    .delete('^a-zñÑA-Z ')
-end
-
 def limpiar(table, eliminar)
-  table = (table.map! { |v| normalizar_nombre(v) }).uniq
+  table.uniq!.map! { |v| normalizar(v) }
 
   table.delete_if do |val|
     del = false
@@ -58,7 +56,7 @@ def limpiar(table, eliminar)
     elsif !eliminar.empty?
       eliminar.each { |elim| del ||= val.include? elim }
     end
-    del
+    del || val.match(/[0-9]{3,}/)
   end
   table
 end
@@ -66,15 +64,9 @@ end
 i_f = []
 i_a = []
 OptionParser.new do |opt|
-  # opt.on('-f', '--file FILENAME') { |o| options[:file] = o }
   opt.on('-f', '--file FILENAME') { |o| i_f = o }
   opt.on('-a', '--analize FILENAME') { |o| i_a = o }
 end.parse!
-
-# puts i_f
-# puts i_a
-
-# input = ARGV
 
 start = Time.now
 
@@ -83,28 +75,23 @@ start = Time.now
 veredas = cargar(i_f)
 tabla = cargar(i_a)
 
-
-# puts tabla['municipio']
-bsq = Bosquesito.new
+bsq = Bosquesito.new(5)
 
 dep = limpiar(veredas['departamento'], [])
 muni = limpiar(veredas['municipio'], [])
 vere = limpiar(veredas['vereda'], ['sin definir'])
 
-guardar('departamento', dep)
-guardar('municipio', muni)
-guardar('vereda', vere)
-# puts vere
+# guardar('texto', tabla['text'])
+# guardar('departamento', dep)
+# guardar('municipio', muni)
+# guardar('vereda', vere)
 
 bsq.agregar_arbol('departamento', dep)
 bsq.agregar_arbol('municipio', muni)
 bsq.agregar_arbol('vereda', vere)
-#
-# # el texto en el cual se buscaran las palabras
-# bsq.verificar(tabla['text'])
-#
 
-
+# el texto en el cual se buscaran las palabras
+bsq.verificar(tabla['text'])
 
 finish = Time.now
 puts "demora total : #{finish - start}"
@@ -277,4 +264,3 @@ puts "demora total : #{finish - start}"
 # rio_7
 
 
-# puts cargar('analizar.csv')

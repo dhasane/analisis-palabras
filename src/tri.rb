@@ -130,17 +130,18 @@ end
 # representa un conjunto de arboles de decision
 class Bosquesito
   Contenedor = Struct.new(:nombre, :contenido)
-  def initialize
+  def initialize(tam_contexto)
     # representa las categorias sobre las que se buscara
     @arboles = []
+    # la cantidad de palabras para tomar de contexto
+    @t_contexto = tam_contexto
+    @contexto = Array.new(tam_contexto * 2 + 1) { {} }
   end
 
   def agregar_arbol(nombre, datos)
     tree = Arbolito.new
-
-    # start = Time.now
     datos.each do |val|
-      tree.add(normalizar(val))
+      tree.add(val)
     end
 
     cc = Contenedor.new
@@ -167,26 +168,56 @@ class Bosquesito
         @arboles.each do |tree|
           ver = tree.contenido.find_context(palabras, i)
           puts tree.nombre.to_s + '  ' + ver.to_s unless ver.empty?
-          puts ver_contexto(palabras, ver.to_s, i, 5) unless ver.empty?
+          puts ver_contexto(palabras, ver.to_s, i) unless ver.empty?
           found ||= !ver.empty?
         end
       end
       puts
-      puts relato # + "\n--------------" unless found
+      puts relato + "\n--------------" if found
       puts '----------------------------------------------'
-      # break
-      # puts '\n--------------------------------------'
+    end
+
+    # prt_contexto
+  end
+
+  def prt_contexto
+    i = 0
+    # @contexto[1]['hola'] = 5
+    @contexto.each do |columna|
+      puts "#{i}------------------------------------"
+      columna.sort_by(&:last).each do |palabra, cantidad|
+        puts "#{palabra}: #{cantidad}"
+      end
+      i += 1
+      puts "\n\n\n\n"
     end
   end
 
-  # siendo contexto, una lista de palabras, frase lo que se tendrá en cuenta y
+  def agregar_a_contexto(columna, palabra)
+    # puts columna
+    @contexto[columna][palabra] = 0 if @contexto[columna][palabra].nil?
+    @contexto[columna][palabra] += 1
+  end
+
+  # siendo contexto, una lista de palabras, frase lo que se tendra en cuenta y
   # entorno la cantidad de palabras alrededor de frase
-  def ver_contexto(contexto, frase, posicion, entorno)
+  def ver_contexto(contexto, frase, posicion)
     # puts '----------------------------------------------'
     tam = frase.split(' ').size
-    pre = contexto[posicion - entorno..posicion - 1]
-    pos = contexto[posicion + tam..posicion + entorno + tam]
+    pre = contexto[posicion - @t_contexto..posicion - 1]
+    pre.each_index do |i|
+      # @contexto[i][pre[i]] = 0 if @contexto[i][pre[i]].nil?
+      # @contexto[i][pre[i]] += 1
+      agregar_a_contexto(i, pre[i])
+    end
+    pos = contexto[posicion + tam..posicion + @t_contexto + tam]
+    pos.each_index do |i|
+      # @contexto[i + @t_contexto][pos[i]] = 0 if @contexto[i + @t_contexto][pos[i]].nil?
+      # @contexto[i + @t_contexto][pos[i]] += 1
+      agregar_a_contexto(i + @t_contexto, pos[i])
+    end
     "#{pre} #{frase} #{pos}"
   end
+
 
 end
