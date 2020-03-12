@@ -1,20 +1,14 @@
 # nodos del arbol
 class Nodito
-  # def initialize(letter, leaf)
   def initialize(letter)
     @letter = letter
     @leaf = false
     @children = {}
   end
 
-  def attr_reader_letter
-    @letter
-  end
-
-  def attr_reader_children
-    @children
-  end
-
+  # agrega una letra al nivel actual en caso de no existir, y a ese nodo le
+  # envia la palabra menos la primera letra, para continuar el proceso hasta la
+  # palabra estar vacia
   def add(palabra)
     # si es la ultima letra, es final de palabra, sin importar
     # que no sea exactamente una hoja del arbol
@@ -28,6 +22,8 @@ class Nodito
     @children[palabra[0]].add(palabra[1..-1]) unless palabra.empty?
   end
 
+  # busca la primera letra de la palabra en los nodos del siguiente nivel
+  # y envia la palabra menos la primera letar a este siguiente nivel
   def find(palabra)
     if !@children[palabra[0]].nil?
       @children[palabra[0]].find(palabra[1..-1])
@@ -40,8 +36,6 @@ class Nodito
   # nombres con mas de una palabra
   def find_context(contexto, numero_palabra, iter, palabra)
     if !@children[contexto[numero_palabra][iter]].nil?
-      # puts '\'' + contexto[numero_palabra][iter] + '\''
-      # puts contexto[numero_palabra][iter]
       @children[contexto[numero_palabra][iter]]
         .find_context(contexto, numero_palabra, iter + 1, palabra)
     elsif !@children[' '].nil? && numero_palabra + 1 < contexto.size
@@ -49,11 +43,21 @@ class Nodito
       palabra += contexto[numero_palabra] + ' '
       @children[' '].find_context(contexto, numero_palabra + 1, 0, palabra)
     else
-      # es la ultima letra de esta palabra el final de una palabra?
       @leaf ? palabra + contexto[numero_palabra] : ''
     end
   end
 
+  # agrega el nodo a la palabra, en caso de ser hoja, se agrega a las palabras
+  # encontradas dentro del arbol
+  def reconstruir_palabras_nodo(palabra, palabras)
+    palabra += @letter
+    palabras << palabra if @leaf
+    @children.each do |_key, value|
+      value.reconstruir_palabras_nodo(palabra, palabras)
+    end
+  end
+
+  # imprime el nodo, indentado dependiendo su profundidad, con respecto a la raiz
   def prt(profundidad)
     bar = @leaf ? '|' : '' # representa final de palabras
     puts profundidad.to_s + "\t" + '-' * profundidad + bar + @letter.to_s + bar
@@ -69,8 +73,7 @@ class Arbolito
     @root = {}
   end
 
-  # se ingesa una palabra normalizada al arbol
-  # se supone no esta vacia
+  # se ingesa una palabra al arbol
   def add(word)
     return if word.nil?
 
@@ -79,6 +82,14 @@ class Arbolito
     @root[word[0]].add(word[1..-1]) unless word[1..-1].empty?
   end
 
+  # reconstuye las palabras dentro del arbol
+  def reconstruir_palabras_arbol(palabras)
+    @root.each do |_key, value|
+      value.reconstruir_palabras_nodo('', palabras)
+    end
+  end
+
+  # busca una palabra
   def find(palabra)
     return if palabra.nil?
 
@@ -89,14 +100,13 @@ class Arbolito
     end
   end
 
-  # es necesario tener en cuenta el contexto para
-  # nombres con mas de una palabra
+  # tiene en cuenta el contexto (las palabras alrededor) al momento
+  # de buscar si una palabra se encuentra en el arbol
+  # es necesario tener en cuenta el contexto para nombres con mas de una palabra
   def find_context(contexto, numero_palabra)
     return if contexto.nil? || contexto[numero_palabra].nil?
 
-    # puts contexto[numero_palabra]
     if !@root[contexto[numero_palabra][0]].nil?
-      # puts contexto[numero_palabra][0]
       @root[contexto[numero_palabra][0]]
         .find_context(contexto, numero_palabra, 1, '')
     else
@@ -105,6 +115,7 @@ class Arbolito
     end
   end
 
+  # imprime los nodos del arbol
   def prt
     puts 'palabras entre || son finales de palabra'
     @root.each do |_key, value|
@@ -121,6 +132,7 @@ def test_arbol
   tri.add('que mas')
 
   str = 'que mas cuenta?'
+  # aqui se deberia encontrar el 'que mas'
 
   str.split(' ').each_index do |i|
     puts tri.find_context(str, i)
@@ -129,7 +141,9 @@ end
 
 # representa un conjunto de arboles de decision
 class Bosquesito
+  # para contener la informacion nombre - contenido(arbol)
   Contenedor = Struct.new(:nombre, :contenido)
+
   def initialize(tam_contexto)
     # representa las categorias sobre las que se buscara
     @arboles = []
@@ -138,6 +152,9 @@ class Bosquesito
     @contexto = Array.new(tam_contexto * 2 + 1) { {} }
   end
 
+  # agrega un elemento, el cual tiene:
+  # contenido, que es el arbol en si
+  # y un nombre, que sirve como identificador
   def agregar_arbol(nombre, datos)
     tree = Arbolito.new
     datos.each do |val|
@@ -151,9 +168,9 @@ class Bosquesito
     @arboles << cc
   end
 
-
-  # Info = Struct.new(:nombre,:)
   # falta realizar varios saltos para evitar volver a contar una palabra
+  # consigue las palabras dentro de un texto que hagan match con las
+  # palabras en alguno de los arboles
   def verificar(text)
     return if text.nil?
 
@@ -176,10 +193,20 @@ class Bosquesito
       puts relato + "\n--------------" if found
       puts '----------------------------------------------'
     end
-
     # prt_contexto
   end
 
+  # reconstruye las palabras que se encuentran dentro de todos los arboles
+  # con fines de poder comprobar que se haya guardado correctamente
+  def reconstruir_palabras
+    palabras = []
+    @arboles.each do |tree|
+      tree.contenido.reconstruir_palabras_arbol(palabras)
+    end
+    palabras
+  end
+
+  # imprime las palabras encontradas como 'contexto'
   def prt_contexto
     i = 0
     # @contexto[1]['hola'] = 5
@@ -193,6 +220,7 @@ class Bosquesito
     end
   end
 
+  # agrega una palabra a una columna especifica del contexto
   def agregar_a_contexto(columna, palabra)
     # puts columna
     @contexto[columna][palabra] = 0 if @contexto[columna][palabra].nil?
@@ -218,6 +246,4 @@ class Bosquesito
     end
     "#{pre} #{frase} #{pos}"
   end
-
-
 end

@@ -77,8 +77,8 @@ tabla = cargar(i_a)
 
 bsq = Bosquesito.new(5)
 
-dep = limpiar(veredas['departamento'], [])
-muni = limpiar(veredas['municipio'], [])
+# dep = limpiar(veredas['departamento'], [])
+# muni = limpiar(veredas['municipio'], [])
 vere = limpiar(veredas['vereda'], ['sin definir'])
 
 # guardar('texto', tabla['text'])
@@ -86,12 +86,13 @@ vere = limpiar(veredas['vereda'], ['sin definir'])
 # guardar('municipio', muni)
 # guardar('vereda', vere)
 
-bsq.agregar_arbol('departamento', dep)
-bsq.agregar_arbol('municipio', muni)
+# bsq.agregar_arbol('departamento', dep)
+# bsq.agregar_arbol('municipio', muni)
 bsq.agregar_arbol('vereda', vere)
 
 # el texto en el cual se buscaran las palabras
-bsq.verificar(tabla['text'])
+# bsq.verificar(tabla['text'])
+puts bsq.reconstruir_palabras
 
 finish = Time.now
 puts "demora total : #{finish - start}"
