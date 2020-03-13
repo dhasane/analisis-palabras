@@ -3,8 +3,7 @@
 require 'csv'
 require 'optparse'
 
-require_relative 'distancias.rb'
-require_relative 'tri.rb'
+require_relative 'bosque.rb'
 
 # carga los datos de un archivo csv
 def cargar(nombre)
@@ -41,8 +40,9 @@ def normalizar(str)
      .gsub('é', 'e')
      .gsub('í', 'i')
      .gsub('ó', 'o')
+     .gsub('-', ' ')
      .gsub(/[úü]/, 'u')
-     .delete('^a-zñÑA-Z0-9 ')
+     .delete('^a-zñÑA-Z0-9. ')
      .gsub(/\s+/, ' ')
 end
 
@@ -56,9 +56,29 @@ def limpiar(table, eliminar)
     elsif !eliminar.empty?
       eliminar.each { |elim| del ||= val.include? elim }
     end
-    del || val.match(/[0-9]{3,}/)
+    del # || val.match(/[0-9]{3,}/)
   end
   table
+end
+
+def limpiar_str_array(str_array)
+  str_array.map! do |v|
+    normalizar(v) unless v.nil?
+  end
+  str_array
+end
+
+# la complejidad de esto esta un asco, pero deberia servir
+def comprobar(texto, lista)
+  lista.each do |val|
+    val.each do |vv|
+      texto.delete_if do |t|
+        # puts t if t == vv
+        t == vv
+      end
+    end
+  end
+  texto
 end
 
 i_f = []
@@ -70,15 +90,13 @@ end.parse!
 
 start = Time.now
 
-# esto eventualmente seria chevere ponerlo como opciones decentes
-# de lineas de comando a lo: palabras -archivos a1,a2,a3,etc -analisis a1
 veredas = cargar(i_f)
 tabla = cargar(i_a)
 
-bsq = Bosquesito.new(5)
+bsq = BosqueTrie.new(5)
 
-# dep = limpiar(veredas['departamento'], [])
-# muni = limpiar(veredas['municipio'], [])
+dep = limpiar(veredas['departamento'], [])
+muni = limpiar(veredas['municipio'], [])
 vere = limpiar(veredas['vereda'], ['sin definir'])
 
 # guardar('texto', tabla['text'])
@@ -86,16 +104,20 @@ vere = limpiar(veredas['vereda'], ['sin definir'])
 # guardar('municipio', muni)
 # guardar('vereda', vere)
 
-# bsq.agregar_arbol('departamento', dep)
-# bsq.agregar_arbol('municipio', muni)
+bsq.agregar_arbol('departamento', dep)
+bsq.agregar_arbol('municipio', muni)
 bsq.agregar_arbol('vereda', vere)
 
 # el texto en el cual se buscaran las palabras
-# bsq.verificar(tabla['text'])
-puts bsq.reconstruir_palabras
+bsq.verificar(limpiar_str_array(tabla['text']))
+
+# puts bsq.reconstruir_palabras
+
+# puts comprobar(ubicaciones, [dep, muni, vere])
 
 finish = Time.now
 puts "demora total : #{finish - start}"
+
 
 # todas las posibles opciones de columnas
 
@@ -109,7 +131,7 @@ puts "demora total : #{finish - start}"
 # vereda,
 # tipo_ubicacion,
 # observaciones_cambio,
-# Estado de Verificación,
+# Estado de Verificacion,
 # Analizado por,
 # text,
 # vereda_1,
@@ -263,5 +285,3 @@ puts "demora total : #{finish - start}"
 # rio_5,
 # rio_6,
 # rio_7
-
-
