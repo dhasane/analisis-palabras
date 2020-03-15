@@ -59,7 +59,7 @@ dWord = {
 
 dSuffix = {
   'triv'=> "",
-  'next_dot_cap'=>"([^\.]+\.)",
+  '(next_dot)'=>"([^\.]+\.)",
   
 }
 
@@ -71,20 +71,28 @@ def matchLine( line, re )
     }
 end
 
+#returns matchobject
+def matchLine2( line, re )
+  
+  line.match( /#{re}/i ){# Regexp( re , "i" ) ) { 
+    |m| ( m )
+    }
+end
+
 #should create intermediate csv file with id and text only
 #returns # of nil/invalid rows
 def preProcessTxt( inPath )
   data = CSV.parse(File.read(inPath.to_s), headers:true )
-  writeBuffIdTx= "id\ttext\n"
+  writeBuffIdTx= "id,text\n"
   writeBuffTx= ''
   nilRows = 0
   data['id'].zip data['text'] do | id , d |
     if( ! ( id.nil? || d.nil? ) )
-      writeBuffTx +=  d + "\n"
-      #writeBuffIdTx += '"' + id  + '","'+ d + '"' + "\n"
-      writeBuffIdTx +=  CSV.generate_line( [id, d ] , :col_sep=>"\t" )
+      d = d.gsub(/"*/,'')
+      writeBuffTx +=  d+"\n"
+      writeBuffIdTx +=  CSV.generate_line( [id, d ] )
     else
-      writeBuffTx += "---------------NIL--------------\n"
+      writeBuffTx += "---------------NIL--------------"
       nilRows+=1
     end
   end
@@ -99,15 +107,16 @@ def preProcessTxt( inPath )
   
 end
 
+#writes id,matches to outputfile with regex 
 define_method(:process){
   |path , pre , word , suf |
   #create re
-  data = CSV.parse( File.read(path.to_s), headers:true , :col_sep=>"\t" )
+  data = CSV.parse( File.read(path.to_s), headers:true  )
   re = dPrefix[pre] + dWord[word] + dSuffix[suf]
-  writeBuff = "id\tmatches\n"
+  writeBuff = "id,matches\n"
 
   data['id'].zip data['text'] do | id , d|
-    writeBuff += CSV.generate_line( [ id , matchLine( d , re ) ] , :col_sep=>"\t"  )
+    writeBuff += CSV.generate_line( [ id , matchLine( d , re ) ] )
   end
   puts word
   filename = "../../datos/intermediate/process::" + [pre,word,suf].join(' ') + ".csv"
@@ -117,8 +126,34 @@ define_method(:process){
   of.close()
 }
 
+#receives path,prefix, word, suffix codes
+#should return dictionary {'id':matchObject} 
+define_method(:process2){
+  |path , pre , word , suf |
+  #create re
+  data = CSV.parse( File.read(path.to_s), headers:true )
+  re = dPrefix[pre] + dWord[word] + dSuffix[suf]
+  matchDic = {}
+
+  data['id'].zip data['text'] do | id , d|
+    matchDic[ id ] =  matchLine2( d , re ) 
+  end
+  matchDic
+}
+
+
 
 p 'preprocessing'
 preProcessTxt( "../../datos/"+ARGV[0]+".csv" )
 p 'processing'
-process('../../datos/iD_Text.csv','en_xlx', 'vereda' ,'next_dot_cap')
+process('../../datos/intermediate/iD_Text.csv','en_xlx', 'vereda' ,'(next_dot)')
+process('../../datos/intermediate/iD_Text.csv','triv', 'vereda' ,'(next_dot)')
+
+dadic = process2('../../datos/intermediate/iD_Text.csv','triv', 'vereda' ,'(next_dot)')
+
+noMatch = []
+i = 0
+dadic.each { | k , v |
+  v.nil? ? noMatch.push(k) :  (v.size > 2 ?  (puts(v.size) ; i+=1 ) : ''  )
+}
+puts "no match: #{noMatch.size}", "more than 1 match: #{i}"
