@@ -10,7 +10,7 @@ class BosqueTrie
     @arboles = []
     # la cantidad de palabras para tomar de contexto
     @tam_contexto = tam_contexto
-    @contexto = Array.new(tam_contexto * 2 + 1) { {} }
+    @contexto = Array.new(tam_contexto * 2) { {} }
   end
 
   # agrega un elemento, el cual tiene:
@@ -42,14 +42,15 @@ class BosqueTrie
 
       resultado_relato = {}
 
-      puts '----------------------------------------------'
-      puts relato
+      # puts '----------------------------------------------'
+      # puts relato
       resultado_relato['relato'] = relato
-      puts
+      # puts
 
       next if relato.nil?
 
-      verificar_frase(relato)
+      resultado_relato['posibilidades'] = verificar_frase(relato)
+      resultado << resultado_relato
       next
 
       parrafo = relato.split('.')
@@ -59,24 +60,32 @@ class BosqueTrie
         verificar_frase(parr)
       end
     end
+    resultado
     # prt_contexto
   end
 
   # cada palabra probarla en todos los arboles
   def verificar_frase(relato)
-    resultado = {}
-    encontradas = 0
+    resultado = []
     palabras = relato.split(' ')
     palabras.each_index do |i|
       @arboles.each do |tree|
         ver = tree.contenido.buscar_contexto(palabras, i)
         unless ver.empty?
-          puts tree.nombre.to_s + '  ' + ver.to_s
-          resultado['posibilidad'+] = tree.nombre.to_s + '  ' + ver.to_s
-          puts ver_contexto(palabras, ver.to_s, i)
+          posibilidad = {}
+          palabra = tree.nombre.to_s + '  ' + ver.to_s
+          # puts palabra
+          posibilidad['palabra'] = palabra
+          contexto = ver_contexto(palabras, ver.to_s, i)
+          posibilidad['contexto'] = contexto
+          # puts contexto
+
+          resultado << posibilidad
+
         end
       end
     end
+    resultado
   end
 
   # reconstruye las palabras que se encuentran dentro de todos los arboles
@@ -117,7 +126,7 @@ class BosqueTrie
     pre.each_index do |i|
       agregar_a_contexto(i, pre[i])
     end
-    pos = contexto[posicion + tam..posicion + @tam_contexto + tam]
+    pos = contexto[posicion + tam..posicion + @tam_contexto + tam - 1]
     pos.each_index do |i|
       agregar_a_contexto(i + @tam_contexto, pos[i])
     end

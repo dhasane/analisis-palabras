@@ -82,6 +82,15 @@ def comprobar(texto, lista)
   texto
 end
 
+def guardar_resultados(resultados)
+
+  resultados.each do |res|
+    puts '----------------------------------------------'
+    puts res
+  end
+
+end
+
 i_f = []
 i_a = []
 OptionParser.new do |opt|
@@ -115,7 +124,7 @@ bsq.agregar_arbol('vereda', vere)
 
 # puts comprobar(ubicaciones, [dep, muni, vere])
 
-guardar_resultados( bsq.verificar(limpiar_str_array(tabla['text'])) )
+guardar_resultados(bsq.verificar(limpiar_str_array(tabla['text'])))
 
 finish = Time.now
 puts "demora total : #{finish - start}"
