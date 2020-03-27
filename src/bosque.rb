@@ -71,18 +71,16 @@ class BosqueTrie
     palabras.each_index do |i|
       @arboles.each do |tree|
         ver = tree.contenido.buscar_contexto(palabras, i)
-        unless ver.empty?
-          posibilidad = {}
-          palabra = tree.nombre.to_s + '  ' + ver.to_s
-          # puts palabra
-          posibilidad['palabra'] = palabra
-          contexto = ver_contexto(palabras, ver.to_s, i)
-          posibilidad['contexto'] = contexto
-          # puts contexto
 
-          resultado << posibilidad
+        next if ver.empty?
 
-        end
+        posibilidad = {}
+        posibilidad['tipo'] = tree.nombre.to_s
+        posibilidad['palabra'] = ver.to_s
+        contexto = ver_contexto(palabras, ver.to_s, i)
+        posibilidad['contexto'] = contexto
+
+        resultado << posibilidad
       end
     end
     resultado
@@ -130,6 +128,11 @@ class BosqueTrie
     pos.each_index do |i|
       agregar_a_contexto(i + @tam_contexto, pos[i])
     end
-    "#{pre} #{frase} #{pos}"
+    # "#{pre} #{frase} #{pos}"
+    ctx = {}
+    ctx['pre'] = pre
+    ctx['pos'] = pos
+    # "#{pre} #{pos}"
+    ctx
   end
 end

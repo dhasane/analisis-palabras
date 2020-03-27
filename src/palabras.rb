@@ -74,7 +74,6 @@ def comprobar(texto, lista)
   lista.each do |val|
     val.each do |vv|
       texto.delete_if do |t|
-        # puts t if t == vv
         t == vv
       end
     end
@@ -82,13 +81,40 @@ def comprobar(texto, lista)
   texto
 end
 
+# une todos lo elementos de un arreglo con ', ' y
+# rodea el resultado con ""
+def format(cnt)
+  "\"#{cnt.join(', ')}\""
+end
+
+# retorna un string como:
+# "palabra, tipo, "pre1,pre2...", "pos1,pos2..." "
+def item_format(posibilidad)
+  format(
+    [
+      posibilidad['palabra'],
+      posibilidad['tipo'],
+      format(posibilidad['contexto']['pre']),
+      format(posibilidad['contexto']['pos'])
+    ]
+  )
+end
+
 def guardar_resultados(resultados)
+  CSV.open('resultados.csv', 'wb') do |csv|
+    resultados.each do |res|
+      next if res.nil?
 
-  resultados.each do |res|
-    puts '----------------------------------------------'
-    puts res
+      pp = [
+        "\"#{res['relato']}\"",
+        format(res['posibilidades'].map { |posib| item_format(posib) })
+      ].join(', ')
+
+      puts pp
+      # puts '----------------------------------------------'
+      csv << pp
+    end
   end
-
 end
 
 i_f = []
@@ -125,6 +151,8 @@ bsq.agregar_arbol('vereda', vere)
 # puts comprobar(ubicaciones, [dep, muni, vere])
 
 guardar_resultados(bsq.verificar(limpiar_str_array(tabla['text'])))
+
+# puts cargar('resultados.csv')
 
 finish = Time.now
 puts "demora total : #{finish - start}"
