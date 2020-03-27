@@ -35,12 +35,16 @@ class BosqueTrie
   def verificar(texto)
     return if texto.nil?
 
+    resultado = []
 
     texto.each do |relato|
       next if relato.nil?
 
+      resultado_relato = {}
+
       puts '----------------------------------------------'
       puts relato
+      resultado_relato['relato'] = relato
       puts
 
       next if relato.nil?
@@ -60,12 +64,17 @@ class BosqueTrie
 
   # cada palabra probarla en todos los arboles
   def verificar_frase(relato)
+    resultado = {}
+    encontradas = 0
     palabras = relato.split(' ')
     palabras.each_index do |i|
       @arboles.each do |tree|
         ver = tree.contenido.buscar_contexto(palabras, i)
-        puts tree.nombre.to_s + '  ' + ver.to_s unless ver.empty?
-        puts ver_contexto(palabras, ver.to_s, i) unless ver.empty?
+        unless ver.empty?
+          puts tree.nombre.to_s + '  ' + ver.to_s
+          resultado['posibilidad'+] = tree.nombre.to_s + '  ' + ver.to_s
+          puts ver_contexto(palabras, ver.to_s, i)
+        end
       end
     end
   end
