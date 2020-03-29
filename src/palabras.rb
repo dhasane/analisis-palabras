@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'csv'
+require 'json'
 require 'optparse'
 
 require_relative 'bosque.rb'
@@ -150,7 +151,8 @@ bsq.agregar_arbol('vereda', vere)
 
 # puts comprobar(ubicaciones, [dep, muni, vere])
 
-guardar_resultados(bsq.verificar(limpiar_str_array(tabla['text'])))
+# guardar_resultados(bsq.verificar(limpiar_str_array(tabla['text'])))
+puts bsq.verificar(limpiar_str_array(tabla['text'])).to_json
 
 # puts cargar('resultados.csv')
 

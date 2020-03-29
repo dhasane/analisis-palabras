@@ -44,7 +44,7 @@ class BosqueTrie
 
       # puts '----------------------------------------------'
       # puts relato
-      resultado_relato['relato'] = relato
+      resultado_relato['texto'] = relato
       # puts
 
       next if relato.nil?
