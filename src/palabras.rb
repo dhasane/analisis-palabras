@@ -152,7 +152,10 @@ bsq.agregar_arbol('vereda', vere)
 # puts comprobar(ubicaciones, [dep, muni, vere])
 
 # guardar_resultados(bsq.verificar(limpiar_str_array(tabla['text'])))
-puts bsq.verificar(limpiar_str_array(tabla['text'])).to_json
+
+File.open('resultados.json', 'w') do |file|
+  file.write(bsq.verificar(limpiar_str_array(tabla['text'])).to_json)
+end
 
 # puts cargar('resultados.csv')
 
