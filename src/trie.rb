@@ -43,7 +43,7 @@ class ArbolTrie
       @raiz[contexto[numero_palabra][0]]
         .buscar_contexto(contexto, numero_palabra, 1, '')
     else
-      # false # la primera letra no fue encontrada
+      # la primera letra no fue encontrada
       ''
     end
   end

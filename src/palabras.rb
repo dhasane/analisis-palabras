@@ -118,6 +118,53 @@ def guardar_resultados(resultados)
   end
 end
 
+def guardar_csv(original, resultados, nombre)
+  CSV.open("#{nombre}.csv", 'wb') do |csv|
+
+    # copia el header
+    csv << original.headers
+
+    original[1..-1].zip(resultados).each do |linea_o, linea_r|
+      veredas = 1
+      departamentos = 1
+      municipios = 1
+      # linea = {}
+      # puts "\n\n\n"
+      # puts linea_r
+      linea_r['posibilidades'].each do |pos|
+        if pos['tipo'] == 'vereda'
+          linea_o["vereda_#{veredas}"] = pos['palabra']
+          veredas += 1
+        end
+        if pos['tipo'] == 'departamento'
+          linea_o["departamento_#{veredas}"] = pos['palabra']
+          departamentos += 1
+        end
+        if pos['tipo'] == 'municipio'
+          linea_o["municipio_#{veredas}"] = pos['palabra']
+          municipios += 1
+        end
+      end
+      linea_o['dep_cambia_a'] = ""
+      linea_o['mun_cambia_a'] = ""
+      linea_o['cp_cambia_a'] = ""
+      linea_o['observaciones_cambio'] = ""
+      linea_o['Analizado por'] = 'auto'
+      linea_o['Estado de Verificación'] = ''
+      linea_o['Dif'] = ''
+      csv << linea_o
+    end
+
+  end
+end
+
+def guardar_json(objeto, nombre)
+  puts "archivo creado #{nombre}.json"
+  File.open("#{nombre}.json", 'w') do |file|
+    file.write(objeto.to_json)
+  end
+end
+
 i_f = []
 i_a = []
 OptionParser.new do |opt|
@@ -136,26 +183,14 @@ dep = limpiar(veredas['departamento'], [])
 muni = limpiar(veredas['municipio'], [])
 vere = limpiar(veredas['vereda'], ['sin definir'])
 
-# guardar('texto', tabla['text'])
-# guardar('departamento', dep)
-# guardar('municipio', muni)
-# guardar('vereda', vere)
-
 bsq.agregar_arbol('departamento', dep)
 bsq.agregar_arbol('municipio', muni)
 bsq.agregar_arbol('vereda', vere)
 
-# el texto en el cual se buscaran las palabras
+verif = bsq.verificar(limpiar_str_array(tabla['text']))
 
-# puts bsq.reconstruir_palabras
-
-# puts comprobar(ubicaciones, [dep, muni, vere])
-
-# guardar_resultados(bsq.verificar(limpiar_str_array(tabla['text'])))
-
-File.open('resultados.json', 'w') do |file|
-  file.write(bsq.verificar(limpiar_str_array(tabla['text'])).to_json)
-end
+# guardar_json(verif, "resultados")
+guardar_csv(tabla, verif, "resultados")
 
 # puts cargar('resultados.csv')
 

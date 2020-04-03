@@ -41,11 +41,7 @@ class BosqueTrie
       next if relato.nil?
 
       resultado_relato = {}
-
-      # puts '----------------------------------------------'
-      # puts relato
       resultado_relato['texto'] = relato
-      # puts
 
       next if relato.nil?
 
@@ -53,6 +49,9 @@ class BosqueTrie
       resultado << resultado_relato
       next
 
+      # TODO arreglar esto, que podria dar informacion mas relevante
+      # el problema es que aveces hay puntos en la mitad de un parrafo
+      # para cosas como a.m., entonces descuadra los parrafos
       parrafo = relato.split('.')
       puts parrafo
       parrafo.each do |parr|
@@ -61,7 +60,6 @@ class BosqueTrie
       end
     end
     resultado
-    # prt_contexto
   end
 
   # cada palabra probarla en todos los arboles
@@ -99,7 +97,6 @@ class BosqueTrie
   # imprime las palabras encontradas como 'contexto'
   def prt_contexto
     i = 0
-    # @contexto[1]['hola'] = 5
     @contexto.each do |columna|
       puts "#{i}------------------------------------"
       columna.sort_by(&:last).each do |palabra, cantidad|
