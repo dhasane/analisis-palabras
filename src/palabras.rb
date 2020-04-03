@@ -119,42 +119,53 @@ def guardar_resultados(resultados)
 end
 
 def guardar_csv(original, resultados, nombre)
+# columns = details[inner_hash].keys.to_a
+# CSV.open('test.csv', 'w', write_headers: true, headers: columns) do |csv|
+#   #logic in here
+# end
+
+
   CSV.open("#{nombre}.csv", 'wb') do |csv|
 
+    # copia valores anteriores
+    mantener = ["id","dep_coded","mun_coded","cp_coded","vereda", "text"]
+    # inicializa en nill
+    headers = original.headers - mantener
     # copia el header
     csv << original.headers
 
     original[1..-1].zip(resultados).each do |linea_o, linea_r|
+      # crea un nuevo hash con las llaves de los headers inicializadas en nil
+
+      next if linea_o['text'].nil?
+
+      nueva_linea = linea_o
+
+      headers.each { |h| nueva_linea[h] = nil }
+      mantener.each { |m| nueva_linea[m] = linea_o[m] }
+
       veredas = 1
       departamentos = 1
       municipios = 1
-      # linea = {}
-      # puts "\n\n\n"
-      # puts linea_r
       linea_r['posibilidades'].each do |pos|
         if pos['tipo'] == 'vereda'
-          linea_o["vereda_#{veredas}"] = pos['palabra']
+          nueva_linea["vereda_#{veredas}"] = pos['palabra']
+          # puts "#{pos['palabra']} en vereda #{veredas} "
           veredas += 1
         end
         if pos['tipo'] == 'departamento'
-          linea_o["departamento_#{veredas}"] = pos['palabra']
+          nueva_linea["departamento_#{departamentos}"] = pos['palabra']
+          # puts "#{pos['palabra']} en departamento #{departamentos} "
           departamentos += 1
         end
         if pos['tipo'] == 'municipio'
-          linea_o["municipio_#{veredas}"] = pos['palabra']
+          nueva_linea["municipio_#{municipios}"] = pos['palabra']
+          # puts "#{pos['palabra']} en municipio #{municipios} "
           municipios += 1
         end
       end
-      linea_o['dep_cambia_a'] = ""
-      linea_o['mun_cambia_a'] = ""
-      linea_o['cp_cambia_a'] = ""
-      linea_o['observaciones_cambio'] = ""
-      linea_o['Analizado por'] = 'auto'
-      linea_o['Estado de Verificación'] = ''
-      linea_o['Dif'] = ''
-      csv << linea_o
+      csv << nueva_linea
     end
-
   end
 end
 
