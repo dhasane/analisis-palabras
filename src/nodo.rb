@@ -43,7 +43,12 @@ class Nodo
       palabra += contexto[numero_palabra] + ' '
       @hijos[' '].buscar_contexto(contexto, numero_palabra + 1, 0, palabra)
     else
-      @leaf ? palabra + contexto[numero_palabra] : ''
+      # faltaria comparar si este nodo es igual a la ultima letra de la palabra
+      if iter == contexto[numero_palabra].length
+        @leaf ? palabra + contexto[numero_palabra] : ''
+      else
+        ""
+      end
     end
   end
 
