@@ -1,4 +1,5 @@
 require_relative 'trie.rb'
+require 'byebug'
 
 # representa un conjunto de arboles de decision
 class BosqueTrie
@@ -68,6 +69,11 @@ class BosqueTrie
     palabras = relato.split(' ')
     palabras.each_index do |i|
       @arboles.each do |tree|
+
+        # if tree.nombre == "vereda" && palabras[i] == "asesinaron"
+        #   byebug
+        # end
+
         ver = tree.contenido.buscar_contexto(palabras, i)
 
         next if ver.empty?

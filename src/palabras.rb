@@ -84,22 +84,22 @@ end
 
 # une todos lo elementos de un arreglo con ', ' y
 # rodea el resultado con ""
-def format(cnt)
-  "\"#{cnt.join(', ')}\""
-end
+# def format(cnt)
+#   "\"#{cnt.join(', ')}\""
+# end
 
 # retorna un string como:
 # "palabra, tipo, "pre1,pre2...", "pos1,pos2..." "
-def item_format(posibilidad)
-  format(
-    [
-      posibilidad['palabra'],
-      posibilidad['tipo'],
-      format(posibilidad['contexto']['pre']),
-      format(posibilidad['contexto']['pos'])
-    ]
-  )
-end
+# def item_format(posibilidad)
+#   format(
+#     [
+#       posibilidad['palabra'],
+#       posibilidad['tipo'],
+#       format(posibilidad['contexto']['pre']),
+#       format(posibilidad['contexto']['pos'])
+#     ]
+#   )
+# end
 
 def guardar_resultados(resultados)
   CSV.open('resultados.csv', 'wb') do |csv|
