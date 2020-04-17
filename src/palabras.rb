@@ -49,7 +49,7 @@ def normalizar(str)
 end
 
 def limpiar(table, eliminar)
-  table.uniq!.map! { |v| normalizar(v) }
+  table.map! { |v| normalizar(v) }
 
   table.delete_if do |val|
     del = false
@@ -194,14 +194,40 @@ dep = limpiar(veredas['departamento'], [])
 muni = limpiar(veredas['municipio'], [])
 vere = limpiar(veredas['vereda'], ['sin definir'])
 
-bsq.agregar_arbol('departamento', dep)
-bsq.agregar_arbol('municipio', muni)
-bsq.agregar_arbol('vereda', vere)
+# relaciones :
+# vereda
+# [
+#   [ municipio1, departamento1 ]
+#   [ municipio2, departamento2 ]
+# ]
+# municipio
+# [
+#   [ departamento1 ]
+#   [ departamento2 ]
+# ]
+# departamento
+# []
+
+# prueba = dep.zip(muni)
+relacion_veredas = []
+relacion_municipios = []
+relacion_departamento = []
+
+dep.zip(muni) do |d, m|
+  # puts "#{d} | #{m}"
+  relacion_departamento << []
+  relacion_municipios << [d]
+  relacion_veredas << [m, d]
+end
+
+bsq.agregar_arbol('departamento', dep, relacion_departamento) # ninguna
+bsq.agregar_arbol('municipio', muni, relacion_municipios) # departamento
+bsq.agregar_arbol('vereda', vere, relacion_veredas) # municipio y departamento
 
 verif = bsq.verificar(limpiar_str_array(tabla['text']))
 
-# guardar_json(verif, "resultados")
-guardar_csv(tabla, verif, "resultados")
+guardar_json(verif, 'resultados')
+# guardar_csv(tabla, verif, "resultados")
 
 # puts cargar('resultados.csv')
 

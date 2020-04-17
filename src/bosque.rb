@@ -17,10 +17,11 @@ class BosqueTrie
   # agrega un elemento, el cual tiene:
   # contenido, que es el arbol en si
   # y un nombre, que sirve como identificador
-  def agregar_arbol(nombre, datos)
+  def agregar_arbol(nombre, datos, relacion)
     tree = ArbolTrie.new
-    datos.each do |val|
-      tree.agregar(val)
+
+    datos.zip(relacion) do |val, rel|
+      tree.agregar(val, rel)
     end
 
     cc = Contenedor.new
@@ -48,6 +49,7 @@ class BosqueTrie
 
       resultado_relato['posibilidades'] = verificar_frase(relato)
       resultado << resultado_relato
+      puts resultado_relato['palabra'].to_s + ':'
       next
 
       # TODO arreglar esto, que podria dar informacion mas relevante
@@ -83,6 +85,11 @@ class BosqueTrie
         posibilidad['palabra'] = ver.to_s
         contexto = ver_contexto(palabras, ver.to_s, i)
         posibilidad['contexto'] = contexto
+        posibilidad['relaciones'] = 'algo'
+
+        # TODO ver como sacar el contexto
+        # probablemente sea desde donde se consigue ver
+        # por lo que seria necesario retornar un hash o una lista o algo
 
         resultado << posibilidad
       end

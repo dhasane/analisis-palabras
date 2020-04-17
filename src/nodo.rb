@@ -4,22 +4,25 @@ class Nodo
     @letra = letra
     @leaf = false
     @hijos = {}
+    @relacion = []
   end
 
   # agrega una letra al nivel actual en caso de no existir, y a ese nodo le
   # envia la palabra menos la primera letra, para continuar el proceso hasta la
   # palabra estar vacia
-  def agregar(palabra)
+  def agregar(palabra, relacion)
     # si es la ultima letra, es final de palabra, sin importar
     # que no sea exactamente una hoja del arbol
-    @leaf ||= palabra.empty?
-
-    if !palabra.empty? && @hijos[palabra[0]].nil? # se crea el nuevo nodo
-      @hijos[palabra[0]] = Nodo.new(palabra[0])
+    if palabra.empty?
+      @leaf = true
+      # en caso de ser hoja, se agrega la relacion
+      @relacion << relacion
+    else
+      # se crea el nuevo nodo con la siguiente letra
+      @hijos[palabra[0]] = Nodo.new(palabra[0]) if @hijos[palabra[0]].nil?
+      # va al siguiente nodo
+      @hijos[palabra[0]].agregar(palabra[1..-1], relacion)
     end
-
-    # va al siguiente, excepto si la palabra - 1 esta vacia
-    @hijos[palabra[0]].agregar(palabra[1..-1]) unless palabra.empty?
   end
 
   # busca la primera letra de la palabra en los nodos del siguiente nivel
@@ -32,23 +35,33 @@ class Nodo
     end
   end
 
-  # es necesario tener en cuenta el contexto para
-  # nombres con mas de una palabra
+  # esta funcion tiene en cuenta el contexto de una palabra, para
+  # poder encontrar cadenas de varias palabras que esten dentro del diccionario
+  # en el texto
+  # contexto es la lista de todas las palabras de un texto
+  # numero palabra es la palabra que se esta buscando dentro del contexto
+  # iter es la posicion en la palabra (la letra)
+  # palabra es el resultado total que ha sido encontrado
   def buscar_contexto(contexto, numero_palabra, iter, palabra)
     if !@hijos[contexto[numero_palabra][iter]].nil?
       @hijos[contexto[numero_palabra][iter]]
         .buscar_contexto(contexto, numero_palabra, iter + 1, palabra)
+
+      # que se encuentre espacio entre los posibles hijos del nodo actual
+      # y que haya una palabra siguiente en el contexto
     elsif !@hijos[' '].nil? && numero_palabra + 1 < contexto.size
       # palabra actual mas la siguiente
       palabra += contexto[numero_palabra] + ' '
       @hijos[' '].buscar_contexto(contexto, numero_palabra + 1, 0, palabra)
+
+      # si no se cumplio ninguna de las anteriores, significa que no hay nada
+      # mas para analizar. Compara con el tamano de la ultima palabra, si
+      # iter y esta palabra son iguales, significa que lo que fue encontrado
+      # esta en el diccionario
+    elsif iter == contexto[numero_palabra].length
+      @leaf ? palabra + contexto[numero_palabra] : ''
     else
-      # faltaria comparar si este nodo es igual a la ultima letra de la palabra
-      if iter == contexto[numero_palabra].length
-        @leaf ? palabra + contexto[numero_palabra] : ''
-      else
-        ""
-      end
+      ''
     end
   end
 

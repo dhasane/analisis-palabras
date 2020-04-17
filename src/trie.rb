@@ -7,12 +7,12 @@ class ArbolTrie
   end
 
   # se ingesa una palabra al arbol
-  def agregar(palabra)
+  def agregar(palabra, relacion)
     return if palabra.nil?
 
     # se crea el nuevo nodo, en caso de que previamente no existiera
     @raiz[palabra[0]] = Nodo.new(palabra[0]) if @raiz[palabra[0]].nil?
-    @raiz[palabra[0]].agregar(palabra[1..-1]) unless palabra[1..-1].empty?
+    @raiz[palabra[0]].agregar(palabra[1..-1], relacion) unless palabra[1..-1].empty?
   end
 
   # reconstuye las palabras dentro del arbol
