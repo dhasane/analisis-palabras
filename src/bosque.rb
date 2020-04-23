@@ -1,5 +1,4 @@
 require_relative 'trie.rb'
-require 'byebug'
 
 # representa un conjunto de arboles de decision
 class BosqueTrie
@@ -48,11 +47,12 @@ class BosqueTrie
       next if relato.nil?
 
       resultado_relato['posibilidades'] = verificar_frase(relato)
+      resultado_relato['posibles relaciones']
       resultado << resultado_relato
-      puts resultado_relato['palabra'].to_s + ':'
+      # puts resultado_relato['palabra'].to_s + ':'
       next
 
-      # TODO arreglar esto, que podria dar informacion mas relevante
+      # TODO: arreglar esto, que podria dar informacion mas relevante
       # el problema es que aveces hay puntos en la mitad de un parrafo
       # para cosas como a.m., entonces descuadra los parrafos
       parrafo = relato.split('.')
@@ -65,33 +65,26 @@ class BosqueTrie
     resultado
   end
 
-  # cada palabra probarla en todos los arboles
+  # cada texto probarlo en cada uno de los arboles
+  # para esto se recorre el relato como una lista de palabras, en la que
+  # cada palabra es verificada en cada uno de los arboles.
+  # En caso de ser encontrada en el arbol, se agrega la informacion
+  # conseguida a la lista "resultado". Esta lista es retornada
   def verificar_frase(relato)
     resultado = []
     palabras = relato.split(' ')
     palabras.each_index do |i|
       @arboles.each do |tree|
-
-        # if tree.nombre == "vereda" && palabras[i] == "asesinaron"
-        #   byebug
-        # end
-
         ver = tree.contenido.buscar_contexto(palabras, i)
 
         next if ver.empty?
 
-        posibilidad = {}
-        posibilidad['tipo'] = tree.nombre.to_s
-        posibilidad['palabra'] = ver.to_s
-        contexto = ver_contexto(palabras, ver.to_s, i)
-        posibilidad['contexto'] = contexto
-        posibilidad['relaciones'] = 'algo'
-
-        # TODO ver como sacar el contexto
-        # probablemente sea desde donde se consigue ver
-        # por lo que seria necesario retornar un hash o una lista o algo
-
-        resultado << posibilidad
+        resultado << {
+          'tipo' => tree.nombre.to_s,
+          'palabra' => ver['pal'].to_s,
+          'contexto' => ver_contexto(palabras, ver['pal'].to_s, i),
+          'relaciones' => ver['rel']
+        }
       end
     end
     resultado

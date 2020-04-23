@@ -119,12 +119,6 @@ def guardar_resultados(resultados)
 end
 
 def guardar_csv(original, resultados, nombre)
-# columns = details[inner_hash].keys.to_a
-# CSV.open('test.csv', 'w', write_headers: true, headers: columns) do |csv|
-#   #logic in here
-# end
-
-
   CSV.open("#{nombre}.csv", 'wb') do |csv|
 
     # copia valores anteriores
@@ -176,6 +170,23 @@ def guardar_json(objeto, nombre)
   end
 end
 
+# imprime los resultados conseguidos de forma que sea facil leerlos
+def pretty_print(resultado)
+  resultado.each do |res|
+    puts 'Texto:'
+    puts res['texto']
+
+    res['posibilidades'].each do |posibilidad|
+      puts "\n"
+      puts "\tPalabra: #{posibilidad['palabra']}"
+      puts "\tTipo: #{posibilidad['tipo']}"
+      puts "\tContexto: #{posibilidad['contexto']['pre']} |#{posibilidad['palabra']}| #{posibilidad['contexto']['pos']}"
+      puts "\tRelaciones: #{posibilidad['relaciones']}"
+    end
+    puts "\n\n"
+  end
+end
+
 i_f = []
 i_a = []
 OptionParser.new do |opt|
@@ -194,6 +205,10 @@ dep = limpiar(veredas['departamento'], [])
 muni = limpiar(veredas['municipio'], [])
 vere = limpiar(veredas['vereda'], ['sin definir'])
 
+relacion_veredas = []
+relacion_municipios = []
+relacion_departamento = []
+
 # relaciones :
 # vereda
 # [
@@ -208,13 +223,7 @@ vere = limpiar(veredas['vereda'], ['sin definir'])
 # departamento
 # []
 
-# prueba = dep.zip(muni)
-relacion_veredas = []
-relacion_municipios = []
-relacion_departamento = []
-
 dep.zip(muni) do |d, m|
-  # puts "#{d} | #{m}"
   relacion_departamento << []
   relacion_municipios << [d]
   relacion_veredas << [m, d]
@@ -225,6 +234,8 @@ bsq.agregar_arbol('municipio', muni, relacion_municipios) # departamento
 bsq.agregar_arbol('vereda', vere, relacion_veredas) # municipio y departamento
 
 verif = bsq.verificar(limpiar_str_array(tabla['text']))
+
+pretty_print(verif)
 
 guardar_json(verif, 'resultados')
 # guardar_csv(tabla, verif, "resultados")

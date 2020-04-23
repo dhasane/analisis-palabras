@@ -1,10 +1,13 @@
-# nodos del arbol
+require 'set'
+
+# Nodo del arbol, cada uno representa una letra y sus hijos representan
+# la siguiente letra de una palabra
 class Nodo
   def initialize(letra)
     @letra = letra
     @leaf = false
     @hijos = {}
-    @relacion = []
+    @relacion = Set.new # [] # cambiar esto a set, para evitar relaciones repetidas
   end
 
   # agrega una letra al nivel actual en caso de no existir, y a ese nodo le
@@ -16,7 +19,8 @@ class Nodo
     if palabra.empty?
       @leaf = true
       # en caso de ser hoja, se agrega la relacion
-      @relacion << relacion
+      # @relacion << relacion unless relacion.empty?
+      @relacion.add(relacion) unless relacion.empty?
     else
       # se crea el nuevo nodo con la siguiente letra
       @hijos[palabra[0]] = Nodo.new(palabra[0]) if @hijos[palabra[0]].nil?
@@ -58,10 +62,10 @@ class Nodo
       # mas para analizar. Compara con el tamano de la ultima palabra, si
       # iter y esta palabra son iguales, significa que lo que fue encontrado
       # esta en el diccionario
-    elsif iter == contexto[numero_palabra].length
-      @leaf ? palabra + contexto[numero_palabra] : ''
+    elsif iter == contexto[numero_palabra].length && @leaf
+      { 'pal' => palabra + contexto[numero_palabra], 'rel' => @relacion.to_a }
     else
-      ''
+      {}
     end
   end
 
