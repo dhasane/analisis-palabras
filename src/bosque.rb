@@ -47,9 +47,7 @@ class BosqueTrie
       next if relato.nil?
 
       resultado_relato['posibilidades'] = verificar_frase(relato)
-      resultado_relato['posibles relaciones']
       resultado << resultado_relato
-      # puts resultado_relato['palabra'].to_s + ':'
       next
 
       # TODO: arreglar esto, que podria dar informacion mas relevante
@@ -75,6 +73,11 @@ class BosqueTrie
     palabras = relato.split(' ')
     palabras.each_index do |i|
       @arboles.each do |tree|
+
+        # if palabras[i] == 'termales' && tree.nombre == 'vereda'
+        #   byebug
+        # end
+
         ver = tree.contenido.buscar_contexto(palabras, i)
 
         next if ver.empty?
@@ -85,6 +88,14 @@ class BosqueTrie
           'contexto' => ver_contexto(palabras, ver['pal'].to_s, i),
           'relaciones' => ver['rel']
         }
+
+        # if palabras[i] == 'termales' && tree.nombre == 'vereda'
+        #   byebug
+        # end
+
+
+        # puts resultado
+
       end
     end
     resultado

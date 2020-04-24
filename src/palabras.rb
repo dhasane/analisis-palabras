@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'byebug'
+
 require 'csv'
 require 'json'
 require 'optparse'
@@ -176,7 +178,11 @@ def pretty_print(resultado)
     puts 'Texto:'
     puts res['texto']
 
+
     res['posibilidades'].each do |posibilidad|
+      if posibilidad =~ "termales"
+        byebug
+      end
       puts "\n"
       puts "\tPalabra: #{posibilidad['palabra']}"
       puts "\tTipo: #{posibilidad['tipo']}"
@@ -234,6 +240,8 @@ bsq.agregar_arbol('municipio', muni, relacion_municipios) # departamento
 bsq.agregar_arbol('vereda', vere, relacion_veredas) # municipio y departamento
 
 verif = bsq.verificar(limpiar_str_array(tabla['text']))
+
+# puts bsq.reconstruir_palabras
 
 pretty_print(verif)
 
