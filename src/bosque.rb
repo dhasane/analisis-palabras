@@ -45,19 +45,16 @@ class BosqueTrie
       resultado_relato['texto'] = relato
 
       next if relato.nil?
-
-      resultado_relato['posibilidades'] = verificar_frase(relato)
-      resultado << resultado_relato
-      next
+      # resultado_relato['posibilidades'] = verificar_frase(relato)
+      # next
 
       # TODO: arreglar esto, que podria dar informacion mas relevante
       # el problema es que aveces hay puntos en la mitad de un parrafo
-      # para cosas como a.m., entonces descuadra los parrafos
-      parrafo = relato.split('.')
-      puts parrafo
+      # para cosas como a.m. ", entonces descuadra los parrafos
+      parrafo = relato.split("\n")
       parrafo.each do |parr|
-        puts parr
-        verificar_frase(parr)
+        resultado_relato['posibilidades'] = verificar_frase(parr)
+        resultado << resultado_relato
       end
     end
     resultado
@@ -74,10 +71,6 @@ class BosqueTrie
     palabras.each_index do |i|
       @arboles.each do |tree|
 
-        # if palabras[i] == 'termales' && tree.nombre == 'vereda'
-        #   byebug
-        # end
-
         ver = tree.contenido.buscar_contexto(palabras, i)
 
         next if ver.empty?
@@ -88,14 +81,6 @@ class BosqueTrie
           'contexto' => ver_contexto(palabras, ver['pal'].to_s, i),
           'relaciones' => ver['rel']
         }
-
-        # if palabras[i] == 'termales' && tree.nombre == 'vereda'
-        #   byebug
-        # end
-
-
-        # puts resultado
-
       end
     end
     resultado
@@ -135,12 +120,17 @@ class BosqueTrie
   def ver_contexto(contexto, frase, posicion)
     tam = frase.split(' ').size
     pre = contexto[posicion - @tam_contexto..posicion - 1]
-    pre.each_index do |i|
-      agregar_a_contexto(i, pre[i])
+    if pre
+      pre.each_index do |i|
+        agregar_a_contexto(i, pre[i])
+      end
     end
+
     pos = contexto[posicion + tam..posicion + @tam_contexto + tam - 1]
-    pos.each_index do |i|
-      agregar_a_contexto(i + @tam_contexto, pos[i])
+    if pos
+      pos.each_index do |i|
+        agregar_a_contexto(i + @tam_contexto, pos[i])
+      end
     end
     # "#{pre} #{frase} #{pos}"
     ctx = {}

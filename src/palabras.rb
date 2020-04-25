@@ -48,6 +48,8 @@ def normalizar(str)
      .gsub(/[úü]/, 'u')
      .delete('^a-zñÑA-Z0-9. ')
      .gsub(/\s+/, ' ')
+     .gsub(/([a-z])\.([a-z])\./, '\1\2')
+     .gsub('.', "\n")
 end
 
 def limpiar(table, eliminar)
@@ -180,9 +182,7 @@ def pretty_print(resultado)
 
 
     res['posibilidades'].each do |posibilidad|
-      if posibilidad =~ "termales"
-        byebug
-      end
+
       puts "\n"
       puts "\tPalabra: #{posibilidad['palabra']}"
       puts "\tTipo: #{posibilidad['tipo']}"
