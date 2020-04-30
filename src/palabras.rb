@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# coding: utf-8
 
 require 'byebug'
 
@@ -40,26 +41,22 @@ end
 # normaliza el texto, haciendo mas facil su busqueda
 def normalizar(str)
   str.downcase
-     .gsub('á', 'a')
-     .gsub('é', 'e')
-     .gsub('í', 'i')
-     .gsub('ó', 'o')
-     .gsub('-', ' ')
+     .gsub('á', 'a').gsub('é', 'e').gsub('í', 'i').gsub('ó', 'o')
      .gsub(/[úü]/, 'u')
+     .gsub('-', ' ')
      .delete('^a-zñÑA-Z0-9. ')
      .gsub(/\s+/, ' ')
      .gsub(/([a-z])\.([a-z])\./, '\1\2')
-     .gsub('.', "\n")
+  # .gsub('.', " \n ")
+  # separarlo de otras posibles palabras, para evitar que las afecte
 end
 
 def limpiar(table, eliminar)
   table.map! { |v| normalizar(v) }
 
   table.delete_if do |val|
-    del = false
-    if val.empty?
-      del = true
-    elsif !eliminar.empty?
+    del = val.empty? # si esta vacio, borrar de una
+    if !val && !eliminar.empty?
       eliminar.each { |elim| del ||= val.include? elim }
     end
     del # || val.match(/[0-9]{3,}/)
@@ -74,59 +71,10 @@ def limpiar_str_array(str_array)
   str_array
 end
 
-# la complejidad de esto esta un asco, pero deberia servir
-def comprobar(texto, lista)
-  lista.each do |val|
-    val.each do |vv|
-      texto.delete_if do |t|
-        t == vv
-      end
-    end
-  end
-  texto
-end
-
-# une todos lo elementos de un arreglo con ', ' y
-# rodea el resultado con ""
-# def format(cnt)
-#   "\"#{cnt.join(', ')}\""
-# end
-
-# retorna un string como:
-# "palabra, tipo, "pre1,pre2...", "pos1,pos2..." "
-# def item_format(posibilidad)
-#   format(
-#     [
-#       posibilidad['palabra'],
-#       posibilidad['tipo'],
-#       format(posibilidad['contexto']['pre']),
-#       format(posibilidad['contexto']['pos'])
-#     ]
-#   )
-# end
-
-def guardar_resultados(resultados)
-  CSV.open('resultados.csv', 'wb') do |csv|
-    resultados.each do |res|
-      next if res.nil?
-
-      pp = [
-        "\"#{res['relato']}\"",
-        format(res['posibilidades'].map { |posib| item_format(posib) })
-      ].join(', ')
-
-      puts pp
-      # puts '----------------------------------------------'
-      csv << pp
-    end
-  end
-end
-
 def guardar_csv(original, resultados, nombre)
   CSV.open("#{nombre}.csv", 'wb') do |csv|
-
     # copia valores anteriores
-    mantener = ["id","dep_coded","mun_coded","cp_coded","vereda", "text"]
+    mantener = ['id', 'dep_coded', 'mun_coded', 'cp_coded', 'vereda', 'text']
     # inicializa en nill
     headers = original.headers - mantener
     # copia el header
@@ -146,6 +94,9 @@ def guardar_csv(original, resultados, nombre)
       departamentos = 1
       municipios = 1
       linea_r['posibilidades'].each do |pos|
+        # TODO: aqui hay que poner las relaciones de cada una de las ubicaciones
+        # y ya no sumar por cada una como independiente, sino ya que cada una
+        # ya tiene ses relaciones, subar en 'global'
         if pos['tipo'] == 'vereda'
           nueva_linea["vereda_#{veredas}"] = pos['palabra']
           # puts "#{pos['palabra']} en vereda #{veredas} "
@@ -180,13 +131,12 @@ def pretty_print(resultado)
     puts 'Texto:'
     puts res['texto']
 
-
     res['posibilidades'].each do |posibilidad|
-
       puts "\n"
       puts "\tPalabra: #{posibilidad['palabra']}"
       puts "\tTipo: #{posibilidad['tipo']}"
-      puts "\tContexto: #{posibilidad['contexto']['pre']} |#{posibilidad['palabra']}| #{posibilidad['contexto']['pos']}"
+      puts "\tContexto: #{posibilidad['contexto']['pre']} |" \
+           "#{posibilidad['palabra']}| #{posibilidad['contexto']['pos']}"
       puts "\tRelaciones: #{posibilidad['relaciones']}"
     end
     puts "\n\n"
@@ -241,6 +191,7 @@ bsq.agregar_arbol('vereda', vere, relacion_veredas) # municipio y departamento
 
 verif = bsq.verificar(limpiar_str_array(tabla['text']))
 
+# next
 # puts bsq.reconstruir_palabras
 
 pretty_print(verif)
@@ -252,4 +203,3 @@ guardar_json(verif, 'resultados')
 
 finish = Time.now
 puts "demora total : #{finish - start}"
-

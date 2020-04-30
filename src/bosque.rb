@@ -30,32 +30,35 @@ class BosqueTrie
     @arboles << cc
   end
 
-  # falta realizar varios saltos para evitar volver a contar una palabra
-  # consigue las palabras dentro de un texto que hagan match con las
-  # palabras en alguno de los arboles
+  # siendo texto una lista de cadenas de texto, se verifica cada una de estas.
+  # con relacion a cada uno de los arboles que se hayan construido
+  # al final se retorna una lista de hashes, donde cada hash contiene:
+  # texto => texto original
+  # posibilidades => lista hashes {
+  #   tipo => nombre del arbol en el que fue encontrada la palabra
+  #   palabra => la palabra encontrada en uno de los arboles
+  #   contexto => las palabras que rodean la palabra buscada
+  #   relaciones => relaciones encontradas en el arbol
+  # }
   def verificar(texto)
     return if texto.nil?
 
     resultado = []
-
     texto.each do |relato|
       next if relato.nil?
 
-      resultado_relato = {}
-      resultado_relato['texto'] = relato
+      resultado << {
+        'texto' => relato,
+        'posibilidades' => verificar_texto(relato)
+      }
+    end
+    resultado
+  end
 
-      next if relato.nil?
-      # resultado_relato['posibilidades'] = verificar_frase(relato)
-      # next
-
-      # TODO: arreglar esto, que podria dar informacion mas relevante
-      # el problema es que aveces hay puntos en la mitad de un parrafo
-      # para cosas como a.m. ", entonces descuadra los parrafos
-      parrafo = relato.split("\n")
-      parrafo.each do |parr|
-        resultado_relato['posibilidades'] = verificar_frase(parr)
-        resultado << resultado_relato
-      end
+  def verificar_texto(relato)
+    resultado = []
+    relato.split('.').each do |parr|
+      resultado += verificar_frase(parr)
     end
     resultado
   end
@@ -70,9 +73,7 @@ class BosqueTrie
     palabras = relato.split(' ')
     palabras.each_index do |i|
       @arboles.each do |tree|
-
         ver = tree.contenido.buscar_contexto(palabras, i)
-
         next if ver.empty?
 
         resultado << {
@@ -119,24 +120,17 @@ class BosqueTrie
   # entorno la cantidad de palabras alrededor de frase
   def ver_contexto(contexto, frase, posicion)
     tam = frase.split(' ').size
-    pre = contexto[posicion - @tam_contexto..posicion - 1]
-    if pre
-      pre.each_index do |i|
-        agregar_a_contexto(i, pre[i])
-      end
-    end
+    pre = contexto[[posicion - @tam_contexto, 0].max..posicion - 1]
+    pos = contexto[
+      posicion + tam..
+      [posicion + @tam_contexto + tam - 1, contexto.size].min
+    ]
 
-    pos = contexto[posicion + tam..posicion + @tam_contexto + tam - 1]
-    if pos
-      pos.each_index do |i|
-        agregar_a_contexto(i + @tam_contexto, pos[i])
-      end
-    end
+    # TODO: contexto no se esta usando para nada
+    # pre&.each_index { |i| agregar_a_contexto(i, pre[i]) }
+    # pos&.each_index { |i| agregar_a_contexto(i + @tam_contexto, pos[i]) }
+
     # "#{pre} #{frase} #{pos}"
-    ctx = {}
-    ctx['pre'] = pre
-    ctx['pos'] = pos
-    # "#{pre} #{pos}"
-    ctx
+    { 'pre' => pre, 'pos' => pos }
   end
 end
