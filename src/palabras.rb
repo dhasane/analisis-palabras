@@ -71,6 +71,20 @@ def limpiar_str_array(str_array)
   str_array
 end
 
+# relaciones :
+# vereda
+# [
+#   [ municipio1, departamento1 ]
+#   [ municipio2, departamento2 ]
+# ]
+# municipio
+# [
+#   [ departamento1 ]
+#   [ departamento2 ]
+# ]
+# departamento
+# []
+
 def guardar_csv(original, resultados, nombre)
   CSV.open("#{nombre}.csv", 'wb') do |csv|
     # copia valores anteriores
@@ -81,39 +95,37 @@ def guardar_csv(original, resultados, nombre)
     csv << original.headers
 
     original[1..-1].zip(resultados).each do |linea_o, linea_r|
-      # crea un nuevo hash con las llaves de los headers inicializadas en nil
-
       next if linea_o['text'].nil?
 
       nueva_linea = linea_o
 
+      # para esto debe haber una forma mas eficiente
       headers.each { |h| nueva_linea[h] = nil }
       mantener.each { |m| nueva_linea[m] = linea_o[m] }
+      num_ubicacion = 1
 
-      veredas = 1
-      departamentos = 1
-      municipios = 1
       linea_r['posibilidades'].each do |pos|
-        # TODO: aqui hay que poner las relaciones de cada una de las ubicaciones
-        # y ya no sumar por cada una como independiente, sino ya que cada una
-        # ya tiene ses relaciones, subar en 'global'
         if pos['tipo'] == 'vereda'
-          nueva_linea["vereda_#{veredas}"] = pos['palabra']
-          # puts "#{pos['palabra']} en vereda #{veredas} "
-          veredas += 1
+          pos['relaciones'].each do |relacion|
+            nueva_linea["vereda_#{num_ubicacion}"] = pos['palabra']
+            nueva_linea["municipio_#{num_ubicacion}"] = relacion[0].to_s
+            nueva_linea["departartamento_#{num_ubicacion}"] = relacion[1].to_s
+            num_ubicacion += 1
+          end
+        elsif pos['tipo'] == 'municipio'
+          pos['relaciones'].each do |relacion|
+            nueva_linea["municipio_#{num_ubicacion}"] = pos['palabra']
+            nueva_linea["departamento_#{num_ubicacion}"] = relacion[0].to_s
+            num_ubicacion += 1
+          end
+        elsif pos['tipo'] == 'departamento'
+          nueva_linea["departamento_#{num_ubicacion}"] = pos['palabra']
+          num_ubicacion += 1
         end
-        if pos['tipo'] == 'departamento'
-          nueva_linea["departamento_#{departamentos}"] = pos['palabra']
-          # puts "#{pos['palabra']} en departamento #{departamentos} "
-          departamentos += 1
-        end
-        if pos['tipo'] == 'municipio'
-          nueva_linea["municipio_#{municipios}"] = pos['palabra']
-          # puts "#{pos['palabra']} en municipio #{municipios} "
-          municipios += 1
-        end
+        puts pos['tipo'].to_s + '(' + (num_ubicacion - 1).to_s + ') --> ' + pos['palabra'].to_s + '  ' + pos['relaciones'].to_s
       end
       csv << nueva_linea
+      exit
     end
   end
 end
@@ -165,19 +177,6 @@ relacion_veredas = []
 relacion_municipios = []
 relacion_departamento = []
 
-# relaciones :
-# vereda
-# [
-#   [ municipio1, departamento1 ]
-#   [ municipio2, departamento2 ]
-# ]
-# municipio
-# [
-#   [ departamento1 ]
-#   [ departamento2 ]
-# ]
-# departamento
-# []
 
 dep.zip(muni) do |d, m|
   relacion_departamento << []
@@ -194,10 +193,10 @@ verif = bsq.verificar(limpiar_str_array(tabla['text']))
 # next
 # puts bsq.reconstruir_palabras
 
-pretty_print(verif)
+# pretty_print(verif)
 
-guardar_json(verif, 'resultados')
-# guardar_csv(tabla, verif, "resultados")
+# guardar_json(verif, 'resultados')
+guardar_csv(tabla, verif, 'resultados')
 
 # puts cargar('resultados.csv')
 
