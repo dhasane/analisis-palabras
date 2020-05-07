@@ -7,7 +7,7 @@ require 'csv'
 require 'json'
 require 'optparse'
 
-require_relative 'bosque.rb'
+require_relative 'trie.rb'
 
 # carga los datos de un archivo csv
 def cargar(nombre)
@@ -47,8 +47,6 @@ def normalizar(str)
      .delete('^a-zñÑA-Z0-9. ')
      .gsub(/\s+/, ' ')
      .gsub(/([a-z])\.([a-z])\./, '\1\2')
-  # .gsub('.', " \n ")
-  # separarlo de otras posibles palabras, para evitar que las afecte
 end
 
 def limpiar(table, eliminar)
@@ -59,7 +57,7 @@ def limpiar(table, eliminar)
     if !val && !eliminar.empty?
       eliminar.each { |elim| del ||= val.include? elim }
     end
-    del # || val.match(/[0-9]{3,}/)
+    del
   end
   table
 end
@@ -122,7 +120,7 @@ def guardar_csv(original, resultados, nombre)
           nueva_linea["departamento_#{num_ubicacion}"] = pos['palabra']
           num_ubicacion += 1
         end
-        puts pos['tipo'].to_s + '(' + (num_ubicacion - 1).to_s + ') --> ' + pos['palabra'].to_s + '  ' + pos['relaciones'].to_s
+        # puts pos['tipo'].to_s + '(' + (num_ubicacion - 1).to_s + ') --> ' + pos['palabra'].to_s + '  ' + pos['relaciones'].to_s
       end
       csv << nueva_linea
       exit
@@ -146,7 +144,6 @@ def pretty_print(resultado)
     res['posibilidades'].each do |posibilidad|
       puts "\n"
       puts "\tPalabra: #{posibilidad['palabra']}"
-      puts "\tTipo: #{posibilidad['tipo']}"
       puts "\tContexto: #{posibilidad['contexto']['pre']} |" \
            "#{posibilidad['palabra']}| #{posibilidad['contexto']['pos']}"
       puts "\tRelaciones: #{posibilidad['relaciones']}"
@@ -167,7 +164,7 @@ start = Time.now
 veredas = cargar(i_f)
 tabla = cargar(i_a)
 
-bsq = BosqueTrie.new(5)
+bsq = ArbolTrie.new(5)
 
 dep = limpiar(veredas['departamento'], [])
 muni = limpiar(veredas['municipio'], [])
@@ -177,28 +174,30 @@ relacion_veredas = []
 relacion_municipios = []
 relacion_departamento = []
 
-
 dep.zip(muni) do |d, m|
-  relacion_departamento << []
-  relacion_municipios << [d]
-  relacion_veredas << [m, d]
+  relacion_departamento << ['departamento']
+  relacion_municipios << ['municipio', d]
+  relacion_veredas << ['vereda', m, d]
 end
 
-bsq.agregar_arbol('departamento', dep, relacion_departamento) # ninguna
-bsq.agregar_arbol('municipio', muni, relacion_municipios) # departamento
-bsq.agregar_arbol('vereda', vere, relacion_veredas) # municipio y departamento
+# esto se podria arreglar, pero por el momento para probar
+dep.zip(relacion_departamento) do |val, rel|
+  bsq.agregar(val, rel)
+end
+muni.zip(relacion_municipios) do |val, rel|
+  bsq.agregar(val, rel)
+end
+vere.zip(relacion_veredas) do |val, rel|
+  bsq.agregar(val, rel)
+end
 
+# bsq.prt
 verif = bsq.verificar(limpiar_str_array(tabla['text']))
-
-# next
-# puts bsq.reconstruir_palabras
-
-# pretty_print(verif)
-
-# guardar_json(verif, 'resultados')
-guardar_csv(tabla, verif, 'resultados')
-
-# puts cargar('resultados.csv')
+#
+# # guardar_json(verif, 'resultados')
+# # guardar_csv(tabla, verif, 'resultados')
+#
+pretty_print(verif)
 
 finish = Time.now
 puts "demora total : #{finish - start}"

@@ -2,24 +2,27 @@ require_relative 'nodo.rb'
 
 # arbolito de palabras ~
 class ArbolTrie
-  def initialize
-    @raiz = {}
+  def initialize(tam)
+    @raiz = Nodo.new
+    @tam_contexto = tam
   end
 
   # se ingesa una palabra al arbol
   def agregar(palabra, relacion)
     return if palabra.nil?
 
-    # se crea el nuevo nodo, solo en caso de que previamente no existiera
-    @raiz[palabra[0]] = Nodo.new(palabra[0]) if @raiz[palabra[0]].nil?
-    @raiz[palabra[0]].agregar(palabra[1..-1], relacion)
+    @raiz.agregar(palabra, relacion)
   end
 
+  # reconstruye las palabras que se encuentran dentro de todos los arboles
+  # con fines de poder comprobar que se haya guardado correctamente
+  def reconstruir_palabras
+    palabras = []
+    @raiz.reconstruir_palabras_nodo('', palabras)
+    palabras
+  end
   # reconstuye las palabras dentro del arbol
   def reconstruir_palabras_arbol(palabras)
-    @raiz.each do |_key, value|
-      value.reconstruir_palabras_nodo('', palabras)
-    end
   end
 
   # busca una palabra, retorna true en caso de encontrarla
@@ -27,34 +30,81 @@ class ArbolTrie
   def buscar(palabra)
     return if palabra.nil?
 
-    if !@raiz[palabra[0]].nil?
-      @raiz[palabra[0]].buscar(palabra[1..-1])
-    else
-      false # la primera letra no fue encontrada
-    end
+    @raiz.buscar(palabra)
   end
 
-  # tiene en cuenta el contexto (las palabras alrededor) al momento
-  # de buscar si una palabra se encuentra en el arbol
-  # es necesario tener en cuenta el contexto para nombres con mas de una palabra
-  # en caso de encontrar la palabra, retorna un hash con la palabra y sus
-  # relaciones
-  def buscar_contexto(contexto, numero_palabra)
-    return if contexto.nil? || contexto[numero_palabra].nil?
+  # siendo texto una lista de cadenas de texto, se verifica cada una de estas.
+  # con relacion a cada uno de los arboles que se hayan construido
+  # al final se retorna una lista de hashes, donde cada hash contiene:
+  # texto => texto original
+  # posibilidades => lista hashes {
+  #   tipo => nombre del arbol en el que fue encontrada la palabra
+  #   palabra => la palabra encontrada en uno de los arboles
+  #   contexto => las palabras que rodean la palabra buscada
+  #   relaciones => relaciones encontradas en el arbol
+  # }
+  def verificar(texto)
+    return if texto.nil?
 
-    if !@raiz[contexto[numero_palabra][0]].nil?
-      @raiz[contexto[numero_palabra][0]]
-        .buscar_contexto(contexto, numero_palabra, 1, '')
-    else
-      {}
+    resultado = []
+    texto.each do |relato|
+      next if relato.nil?
+
+      resultado << {
+        'texto' => relato,
+        'posibilidades' => verificar_texto(relato)
+      }
     end
+    resultado
+  end
+
+  def verificar_texto(relato)
+    resultado = []
+    relato.split('.').each do |parr|
+      resultado += verificar_frase(parr)
+    end
+    resultado
+  end
+
+  # cada texto probarlo en cada uno de los arboles
+  # para esto se recorre el relato como una lista de palabras, en la que
+  # cada palabra es verificada en cada uno de los arboles.
+  # En caso de ser encontrada en el arbol, se agrega la informacion
+  # conseguida a la lista "resultado". Esta lista es retornada
+  def verificar_frase(contexto)
+    return if contexto.nil?
+
+    resultado = []
+    palabras = contexto.split(' ')
+    palabras.each_index do |i|
+      ver = @raiz.buscar_contexto(palabras, i, 0, '')
+      next if ver.empty?
+
+      resultado << {
+        # 'tipo' => tree.nombre.to_s,
+        'palabra' => ver['pal'].to_s,
+        'contexto' => ver_contexto(palabras, ver['pal'].to_s, i),
+        'relaciones' => ver['rel']
+      }
+    end
+    resultado
   end
 
   # imprime los nodos del arbol
   def prt
     puts 'letras entre || representan el final de una palabra'
-    @raiz.each do |_key, value|
-      value.prt(0)
-    end
+    @raiz.prt(0)
+  end
+
+  # siendo contexto, una lista de palabras, frase lo que se tendra en cuenta y
+  # entorno la cantidad de palabras alrededor de frase
+  def ver_contexto(contexto, frase, posicion)
+    tam = frase.split(' ').size
+    pre = contexto[[posicion - @tam_contexto, 0].max..posicion - 1]
+    pos = contexto[
+      posicion + tam..
+      [posicion + @tam_contexto + tam - 1, contexto.size].min
+    ]
+    { 'pre' => pre, 'pos' => pos }
   end
 end

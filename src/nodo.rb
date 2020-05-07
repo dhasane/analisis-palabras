@@ -3,11 +3,10 @@ require 'set'
 # Nodo del arbol, cada uno representa una letra y sus hijos representan
 # la siguiente letra de una palabra
 class Nodo
-  def initialize(letra)
-    @letra = letra
+  def initialize
     @leaf = false
     @hijos = {}
-    @relacion = Set.new # [] # cambiar esto a set, para evitar relaciones repetidas
+    @relacion = Set.new
   end
 
   # agrega una letra al nivel actual en caso de no existir, y a ese nodo le
@@ -23,7 +22,7 @@ class Nodo
       @relacion.add(relacion) unless relacion.empty?
     else
       # se crea el nuevo nodo con la siguiente letra
-      @hijos[palabra[0]] = Nodo.new(palabra[0]) if @hijos[palabra[0]].nil?
+      @hijos[palabra[0]] = Nodo.new if @hijos[palabra[0]].nil?
       # va al siguiente nodo
       @hijos[palabra[0]].agregar(palabra[1..-1], relacion)
     end
@@ -35,7 +34,8 @@ class Nodo
     if !@hijos[palabra[0]].nil?
       @hijos[palabra[0]].buscar(palabra[1..-1])
     else
-      @leaf # es la ultima letra de esta palabra el final de una palabra?
+      # es la ultima letra de esta palabra el final de una palabra?
+      @leaf && palabra.length.zero?
     end
   end
 
@@ -72,10 +72,9 @@ class Nodo
   # agrega el nodo a la palabra, en caso de ser hoja, se agrega a las palabras
   # encontradas dentro del arbol
   def reconstruir_palabras_nodo(palabra, palabras)
-    palabra += @letra
     palabras << palabra if @leaf
-    @hijos.each do |_key, valor|
-      valor.reconstruir_palabras_nodo(palabra, palabras)
+    @hijos.each do |letra, valor|
+      valor.reconstruir_palabras_nodo(palabra + letra, palabras)
     end
   end
 
@@ -83,8 +82,10 @@ class Nodo
   # con respecto a la raiz
   def prt(profundidad)
     bar = @leaf ? '|' : '' # representa final de palabras
-    puts profundidad.to_s + "\t" + '-' * profundidad + bar + @letra.to_s + bar
-    @hijos.each do |_key, value|
+    @hijos.each do |letra, value|
+      puts profundidad.to_s + "\t" + '-' * profundidad +
+           bar + letra.to_s + bar +
+           @relacion.to_s
       value.prt(profundidad + 1)
     end
   end
