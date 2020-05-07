@@ -21,9 +21,6 @@ class ArbolTrie
     @raiz.reconstruir_palabras_nodo('', palabras)
     palabras
   end
-  # reconstuye las palabras dentro del arbol
-  def reconstruir_palabras_arbol(palabras)
-  end
 
   # busca una palabra, retorna true en caso de encontrarla
   # false de lo contrario
@@ -77,14 +74,14 @@ class ArbolTrie
     resultado = []
     palabras = contexto.split(' ')
     palabras.each_index do |i|
-      ver = @raiz.buscar_contexto(palabras, i, 0, '')
-      next if ver.empty?
+      respuesta = @raiz.buscar_contexto(palabras, i, 0, '')
+      next if respuesta.empty?
 
       resultado << {
         # 'tipo' => tree.nombre.to_s,
-        'palabra' => ver['pal'].to_s,
-        'contexto' => ver_contexto(palabras, ver['pal'].to_s, i),
-        'relaciones' => ver['rel']
+        'palabra' => respuesta['pal'].to_s,
+        'contexto' => ver_contexto(palabras, respuesta['pal'].to_s, i),
+        'relaciones' => respuesta['rel']
       }
     end
     resultado
