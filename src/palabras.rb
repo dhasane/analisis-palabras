@@ -199,8 +199,8 @@ end
 verif = bsq.verificar(limpiar_str_array(tabla['text']))
 #
 # # guardar_json(verif, 'resultados')
-guardar_csv(tabla, verif, 'resultados')
-#pretty_print(verif)
+# guardar_csv(tabla, verif, 'resultados')
+pretty_print(verif)
 
 finish = Time.now
 puts "demora total : #{finish - start}"

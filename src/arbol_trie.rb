@@ -1,8 +1,7 @@
-# coding: utf-8
 require 'set'
 
 # arbolito de palabras ~
-class Nodo
+class ArbolTrie
   def initialize()
     @hijos = {}
     @relacion = Set.new
@@ -28,6 +27,7 @@ class Nodo
     @relacion
   end
 
+
   # verificar consistencia
   def verificar_consistencia(cadena_revisada = '')
     if @hijos.empty?
@@ -39,8 +39,8 @@ class Nodo
         puts "** letra deberia ser un caracter tras #{cadena_revisada}"
         return false
       end
-      if subarbol.class != Nodo
-        puts "** subarbol deberia ser Nodo tras #{cadena_revisada}"
+      if subarbol.class != ArbolTrie
+        puts "** subarbol deberia ser ArbolTrie tras #{cadena_revisada}"
         return false
       end
       if  subarbol.hijos == {} && subarbol.relacion.count == 0
@@ -62,7 +62,7 @@ class Nodo
       @relacion.add(elemento)
     else
       # se crea el nuevo nodo con la siguiente letra
-      @hijos[cadena[0]] = Nodo.new if @hijos[cadena[0]].nil?
+      @hijos[cadena[0]] = ArbolTrie.new() if @hijos[cadena[0]].nil?
       # va al siguiente nodo
       @hijos[cadena[0]].agregar(cadena[1..-1], elemento)
     end
@@ -88,23 +88,28 @@ class Nodo
   # iter es la posicion en la palabra (la letra)
   # palabra es el resultado total que ha sido encontrado
   def buscar_contexto(contexto, numero_palabra, iter, palabra)
-    if !@hijos[contexto[numero_palabra][iter]].nil?
-      @hijos[contexto[numero_palabra][iter]]
-        .buscar_contexto(contexto, numero_palabra, iter + 1, palabra)
+    if contexto.nil? || numero_palabra >= contexto.length  ||
+        iter > contexto[numero_palabra].length
+      {}
+    elsif iter == contexto[numero_palabra].length
+      if !@relacion.empty?
+        { pal: palabra + contexto[numero_palabra], rel: @relacion.to_a }
 
       # que se encuentre espacio entre los posibles hijos del nodo actual
       # y que haya una palabra siguiente en el contexto
-    elsif !@hijos[' '].nil? && numero_palabra + 1 < contexto.size
-      # palabra actual mas la siguiente
-      palabra += contexto[numero_palabra] + ' '
-      @hijos[' '].buscar_contexto(contexto, numero_palabra + 1, 0, palabra)
+      elsif !@hijos[' '].nil? && numero_palabra + 1 < contexto.size
+        # palabra actual mas la siguiente
+        palabra += contexto[numero_palabra] + ' '
+        @hijos[' '].buscar_contexto(contexto, numero_palabra + 1, 0, palabra)
 
-      # si no se cumplio ninguna de las anteriores, significa que no hay nada
-      # mas para analizar. Compara con el tamano de la ultima palabra, si
-      # iter y esta palabra son iguales, significa que lo que fue encontrado
-      # esta en el diccionario
-    elsif iter == contexto[numero_palabra].length && @leaf
-      { 'pal' => palabra + contexto[numero_palabra], 'rel' => @relacion.to_a }
+      else
+        {}
+      end
+
+    elsif !@hijos[contexto[numero_palabra][iter]].nil?
+      @hijos[contexto[numero_palabra][iter]]
+        .buscar_contexto(contexto, numero_palabra, iter + 1, palabra)
+
     else
       {}
     end
@@ -139,4 +144,5 @@ class Nodo
     end
     imp_aux(profundidad)
   end
+
 end
