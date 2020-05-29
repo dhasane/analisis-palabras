@@ -1,9 +1,10 @@
-require_relative 'nodo.rb'
+
+require_relative 'arbol_trie.rb'
 
 # arbolito de palabras ~
-class ArbolTrie
+class Diccionario
   def initialize(tam)
-    @raiz = Nodo.new
+    @trie = ArbolTrie.new
     @tam_contexto = tam
   end
 
@@ -11,15 +12,19 @@ class ArbolTrie
   def agregar(palabra, relacion)
     return if palabra.nil?
 
-    @raiz.agregar(palabra, relacion)
+    @trie.agregar(palabra, relacion)
   end
 
   # reconstruye las palabras que se encuentran dentro de todos los arboles
   # con fines de poder comprobar que se haya guardado correctamente
   def reconstruir_palabras
     palabras = []
-    @raiz.reconstruir_palabras_nodo('', palabras)
+    @trie.reconstruir_palabras_nodo('', palabras)
     palabras
+  end
+
+  def trie
+    @trie
   end
 
   # busca una palabra, retorna true en caso de encontrarla
@@ -27,7 +32,7 @@ class ArbolTrie
   def buscar(palabra)
     return if palabra.nil?
 
-    @raiz.buscar(palabra)
+    @trie.buscar(palabra)
   end
 
   # siendo texto una lista de cadenas de texto, se verifica cada una de estas.
@@ -48,8 +53,8 @@ class ArbolTrie
       next if relato.nil?
 
       resultado << {
-        'texto' => relato,
-        'posibilidades' => verificar_texto(relato)
+        texto: relato,
+        posibilidades: verificar_texto(relato)
       }
     end
     resultado
@@ -74,14 +79,13 @@ class ArbolTrie
     resultado = []
     palabras = contexto.split(' ')
     palabras.each_index do |i|
-      respuesta = @raiz.buscar_contexto(palabras, i, 0, '')
+      respuesta = @trie.buscar_contexto(palabras, i, 0, '')
       next if respuesta.empty?
 
       resultado << {
-        # 'tipo' => tree.nombre.to_s,
-        'palabra' => respuesta['pal'].to_s,
-        'contexto' => ver_contexto(palabras, respuesta['pal'].to_s, i),
-        'relaciones' => respuesta['rel']
+        palabra: respuesta[:pal].to_s,
+        contexto: ver_contexto(palabras, respuesta[:pal].to_s, i),
+        relaciones: respuesta[:rel]
       }
     end
     resultado
@@ -90,7 +94,7 @@ class ArbolTrie
   # imprime los nodos del arbol
   def prt
     puts 'letras entre || representan el final de una palabra'
-    @raiz.prt(0)
+    @trie.prt(0)
   end
 
   # siendo contexto, una lista de palabras, frase lo que se tendra en cuenta y
@@ -102,6 +106,6 @@ class ArbolTrie
       posicion + tam..
       [posicion + @tam_contexto + tam - 1, contexto.size].min
     ]
-    { 'pre' => pre, 'pos' => pos }
+    { pre: pre, pos: pos }
   end
 end

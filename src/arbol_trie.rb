@@ -1,11 +1,13 @@
+# coding: utf-8
+
 require 'set'
 
 # arbolito de palabras ~
 class ArbolTrie
-  def initialize()
+  def initialize
     @hijos = {}
-    @relacion = Set.new 
-    # Definición: 
+    @relacion = Set.new
+    # Definición:
     # Un nodo es hoja de un árbol si y solo si 
     #   @hijos == {}
     #
@@ -27,8 +29,7 @@ class ArbolTrie
     @relacion
   end
 
-
-  # verificar consistencia 
+  # verificar consistencia
   def verificar_consistencia(cadena_revisada = '')
     if @hijos.empty?
       return true
@@ -51,7 +52,6 @@ class ArbolTrie
     end
   end
 
-
   # agrega una letra al nivel actual en caso de no existir, y a ese nodo le
   # envia la cadena menos la primera letra, para continuar el proceso hasta la
   # cadena estar vacia
@@ -59,10 +59,10 @@ class ArbolTrie
   def agregar(cadena, elemento)
     # si se llegó a última letra se agrea elemento
     if cadena.empty?
-      @relacion.add(elemento) 
+      @relacion.add(elemento)
     else
       # se crea el nuevo nodo con la siguiente letra
-      @hijos[cadena[0]] = ArbolTrie.new() if @hijos[cadena[0]].nil?
+      @hijos[cadena[0]] = ArbolTrie.new if @hijos[cadena[0]].nil?
       # va al siguiente nodo
       @hijos[cadena[0]].agregar(cadena[1..-1], elemento)
     end
@@ -72,7 +72,8 @@ class ArbolTrie
   # y envia la cadena menos la primera letra a este siguiente nivel
   def buscar(cadena)
     if cadena.empty?
-      return !@relacion.empty? # es la ultima letra de esta palabra el final de una palabra?
+      # es la ultima letra de esta palabra el final de una palabra?
+      !@relacion.empty?
     elsif !@hijos[cadena[0]].nil?
       @hijos[cadena[0]].buscar(cadena[1..-1])
     else
@@ -88,13 +89,14 @@ class ArbolTrie
   # iter es la posicion en la palabra (la letra)
   # palabra es el resultado total que ha sido encontrado
   def buscar_contexto(contexto, numero_palabra, iter, palabra)
-    if contexto.nil? || numero_palabra >= contexto.length  || 
-        iter > contexto[numero_palabra].length
+    if contexto.nil? ||
+       numero_palabra >= contexto.length ||
+       iter > contexto[numero_palabra].length
       {}
     elsif iter == contexto[numero_palabra].length 
       if !@relacion.empty?
         { pal: palabra + contexto[numero_palabra], rel: @relacion.to_a }
-      
+
       # que se encuentre espacio entre los posibles hijos del nodo actual
       # y que haya una palabra siguiente en el contexto
       elsif !@hijos[' '].nil? && numero_palabra + 1 < contexto.size
@@ -115,11 +117,10 @@ class ArbolTrie
     end
   end
 
-
   # agrega el nodo a la palabra, en caso de ser hoja, se agrega a las palabras
   # encontradas dentro del arbol
   def reconstruir_palabras_nodo(palabra, palabras)
-    palabras << palabra if !@relacion.empty?
+    palabras << palabra unless @relacion.empty?
     @hijos.each do |letra, valor|
       valor.reconstruir_palabras_nodo(palabra + letra, palabras)
     end
@@ -129,7 +130,6 @@ class ArbolTrie
   # con respecto a la raiz
   def imp_aux(profundidad)
     @hijos.each do |letra, value|
-      bar = value.relacion.empty? ? '': '|' # representa final de palabras
       puts profundidad.to_s + "\t" + '-' * profundidad + '|' + letra.to_s + '|'
       value.imp_aux(profundidad + 1)
     end
@@ -145,4 +145,15 @@ class ArbolTrie
     imp_aux(profundidad)
   end
 
+  # imprime el nodo, indentado dependiendo su profundidad,
+  # con respecto a la raiz
+  def prt(profundidad)
+    # bar = @leaf ? '|' : '' # representa final de palabras
+    @hijos.each do |letra, value|
+      puts profundidad.to_s + "\t" + '-' * profundidad +
+           bar + letra.to_s + bar +
+           @relacion.to_s
+      value.prt(profundidad + 1)
+    end
+  end
 end

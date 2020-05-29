@@ -7,7 +7,7 @@ require 'csv'
 require 'json'
 require 'optparse'
 
-require_relative 'trie.rb'
+require_relative 'diccionario.rb'
 
 # carga los datos de un archivo csv
 def cargar(nombre)
@@ -85,6 +85,8 @@ end
 
 def guardar_csv(original, resultados, nombre)
   CSV.open("#{nombre}.csv", 'wb') do |csv|
+
+
     # copia valores anteriores
     mantener = %w[id dep_coded mun_coded cp_coded vereda text]
     # inicializa en nill
@@ -102,15 +104,15 @@ def guardar_csv(original, resultados, nombre)
       mantener.each { |m| nueva_linea[m] = linea_o[m] }
       num_ubicacion = 1
 
-      linea_r['posibilidades'].each do |pos|
-        pos['relaciones'].each do |ubicacion|
+      linea_r[:posibilidades].each do |pos|
+        pos[:relaciones].each do |ubicacion|
           tipo = ubicacion[0]
           info = ubicacion[1..-1]
 
           # esto posiblemente se puede hacer mucho mas inteligentemente
           if tipo == 'vereda'
             info.each do |relacion|
-              nueva_linea["vereda_#{num_ubicacion}"] = pos['palabra']
+              nueva_linea["vereda_#{num_ubicacion}"] = pos[:palabra]
               nueva_linea["municipio_#{num_ubicacion}"] = relacion[0].to_s
               nueva_linea["departartamento_#{num_ubicacion}"] = relacion[1].to_s
               num_ubicacion += 1
@@ -168,7 +170,7 @@ start = Time.now
 informacion = cargar(i_f)
 tabla = cargar(i_a)
 
-diccionario = ArbolTrie.new(5)
+diccionario = Diccionario.new(5)
 
 dep  = limpiar(informacion['departamento'], [])
 muni = limpiar(informacion['municipio'], [])
@@ -197,10 +199,13 @@ end
 
 # bsq.prt
 verif = diccionario.verificar(limpiar_str_array(tabla['text']))
-#
+
+puts "tiempo en cargar y verificar : #{Time.now - start}"
+puts "guardando: "
+
 # # guardar_json(verif, 'resultados')
 guardar_csv(tabla, verif, 'resultados')
-#pretty_print(verif)
+# pretty_print(verif)
 
 finish = Time.now
 puts "demora total : #{finish - start}"
