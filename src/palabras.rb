@@ -165,14 +165,14 @@ end.parse!
 
 start = Time.now
 
-veredas = cargar(i_f)
+informacion = cargar(i_f)
 tabla = cargar(i_a)
 
-bsq = ArbolTrie.new(5)
+diccionario = ArbolTrie.new(5)
 
-dep = limpiar(veredas['departamento'], [])
-muni = limpiar(veredas['municipio'], [])
-vere = limpiar(veredas['vereda'], ['sin definir'])
+dep  = limpiar(informacion['departamento'], [])
+muni = limpiar(informacion['municipio'], [])
+vere = limpiar(informacion['vereda'], ['sin definir'])
 
 relacion_veredas = []
 relacion_municipios = []
@@ -186,17 +186,17 @@ end
 
 # esto se podria arreglar, pero por el momento para probar
 dep.zip(relacion_departamento) do |val, rel|
-  bsq.agregar(val, rel)
+  diccionario.agregar(val, rel)
 end
 muni.zip(relacion_municipios) do |val, rel|
-  bsq.agregar(val, rel)
+  diccionario.agregar(val, rel)
 end
 vere.zip(relacion_veredas) do |val, rel|
-  bsq.agregar(val, rel)
+  diccionario.agregar(val, rel)
 end
 
 # bsq.prt
-verif = bsq.verificar(limpiar_str_array(tabla['text']))
+verif = diccionario.verificar(limpiar_str_array(tabla['text']))
 #
 # # guardar_json(verif, 'resultados')
 guardar_csv(tabla, verif, 'resultados')
