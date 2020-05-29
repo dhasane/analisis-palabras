@@ -104,7 +104,10 @@ def guardar_csv(original, resultados, nombre)
       mantener.each { |m| nueva_linea[m] = linea_o[m] }
       num_ubicacion = 1
 
+
       linea_r['posibilidades'].each do |pos|
+
+        byebug if pos['relaciones'].nil?
         if pos['tipo'] == 'vereda'
           pos['relaciones'].each do |relacion|
             nueva_linea["vereda_#{num_ubicacion}"] = pos['palabra']
@@ -122,10 +125,9 @@ def guardar_csv(original, resultados, nombre)
           nueva_linea["departamento_#{num_ubicacion}"] = pos['palabra']
           num_ubicacion += 1
         end
-        puts pos['tipo'].to_s + '(' + (num_ubicacion - 1).to_s + ') --> ' + pos['palabra'].to_s + '  ' + pos['relaciones'].to_s
+        # puts pos['tipo'].to_s + '(' + (num_ubicacion - 1).to_s + ') --> ' + pos['palabra'].to_s + '  ' + pos['relaciones'].to_s
       end
       csv << nueva_linea
-      exit
     end
   end
 end

@@ -4,9 +4,9 @@ require 'set'
 class ArbolTrie
   def initialize()
     @hijos = {}
-    @relacion = Set.new 
-    # Definición: 
-    # Un nodo es hoja de un árbol si y solo si 
+    @relacion = Set.new
+    # Definición:
+    # Un nodo es hoja de un árbol si y solo si
     #   @hijos == {}
     #
     # Representación:
@@ -28,14 +28,14 @@ class ArbolTrie
   end
 
 
-  # verificar consistencia 
+  # verificar consistencia
   def verificar_consistencia(cadena_revisada = '')
     if @hijos.empty?
       return true
     end
 
     @hijos.each do |letra, subarbol|
-      if letra.length != 1 
+      if letra.length != 1
         puts "** letra deberia ser un caracter tras #{cadena_revisada}"
         return false
       end
@@ -59,7 +59,7 @@ class ArbolTrie
   def agregar(cadena, elemento)
     # si se llegó a última letra se agrea elemento
     if cadena.empty?
-      @relacion.add(elemento) 
+      @relacion.add(elemento)
     else
       # se crea el nuevo nodo con la siguiente letra
       @hijos[cadena[0]] = ArbolTrie.new() if @hijos[cadena[0]].nil?
@@ -81,20 +81,20 @@ class ArbolTrie
   end
 
   # esta funcion tiene en cuenta el contexto de una palabra, para
-  # poder encontrar cadenas de varias palabras que esten dentro del 
+  # poder encontrar cadenas de varias palabras que esten dentro del
   # diccionario en el texto
   # contexto es la lista de todas las palabras de un texto
   # numero palabra es la palabra que se esta buscando dentro del contexto
   # iter es la posicion en la palabra (la letra)
   # palabra es el resultado total que ha sido encontrado
   def buscar_contexto(contexto, numero_palabra, iter, palabra)
-    if contexto.nil? || numero_palabra >= contexto.length  || 
+    if contexto.nil? || numero_palabra >= contexto.length  ||
         iter > contexto[numero_palabra].length
       {}
-    elsif iter == contexto[numero_palabra].length 
+    elsif iter == contexto[numero_palabra].length
       if !@relacion.empty?
         { pal: palabra + contexto[numero_palabra], rel: @relacion.to_a }
-      
+
       # que se encuentre espacio entre los posibles hijos del nodo actual
       # y que haya una palabra siguiente en el contexto
       elsif !@hijos[' '].nil? && numero_palabra + 1 < contexto.size

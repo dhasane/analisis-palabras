@@ -1,4 +1,4 @@
-require_relative 'trie.rb'
+require_relative 'arbol_trie.rb'
 
 # representa un conjunto de arboles de decision
 class BosqueTrie
@@ -73,14 +73,16 @@ class BosqueTrie
     palabras = relato.split(' ')
     palabras.each_index do |i|
       @arboles.each do |tree|
-        ver = tree.contenido.buscar_contexto(palabras, i)
+        # byebug if palabras[i] == "chia"
+        # byebug if palabras[i] == "vereda"
+        ver = tree.contenido.buscar_contexto(palabras, i, 0 , "")
         next if ver.empty?
 
         resultado << {
           'tipo' => tree.nombre.to_s,
-          'palabra' => ver['pal'].to_s,
-          'contexto' => ver_contexto(palabras, ver['pal'].to_s, i),
-          'relaciones' => ver['rel']
+          'palabra' => ver[:pal].to_s,
+          'contexto' => ver_contexto(palabras, ver[:pal].to_s, i),
+          'relaciones' => ver[:rel]
         }
       end
     end
