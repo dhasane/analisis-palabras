@@ -39,9 +39,16 @@ def prt(mat, col = '')
 end
 
 # normaliza el texto, haciendo mas facil su busqueda
+# quita todas las mayusculas, convierte lo guiones en espacios
+# y borra todos los simbolos que no sean letras, numeros o espacios
+# en caso de haber varios espacios seguidos los unifica y quita
+# puntos en caso de encontrar palabras como 'a.m.' para dejarlo como 'am'
 def normalizar(str)
   str.downcase
-     .gsub('á', 'a').gsub('é', 'e').gsub('í', 'i').gsub('ó', 'o')
+     .gsub(/[á]/, 'a')
+     .gsub(/[é]/, 'e')
+     .gsub(/[í]/, 'i')
+     .gsub(/[ó]/, 'o')
      .gsub(/[úü]/, 'u')
      .gsub('-', ' ')
      .delete('^a-zñÑA-Z0-9. ')
@@ -111,18 +118,14 @@ def guardar_csv(original, resultados, nombre)
 
           # esto posiblemente se puede hacer mucho mas inteligentemente
           if tipo == 'vereda'
-            info.each do |relacion|
-              nueva_linea["vereda_#{num_ubicacion}"] = pos[:palabra]
-              nueva_linea["municipio_#{num_ubicacion}"] = relacion[0].to_s
-              nueva_linea["departartamento_#{num_ubicacion}"] = relacion[1].to_s
-              num_ubicacion += 1
-            end
+            nueva_linea["vereda_#{num_ubicacion}"] = pos[:palabra]
+            nueva_linea["municipio_#{num_ubicacion}"] = info[0].to_s
+            nueva_linea["departartamento_#{num_ubicacion}"] = info[1].to_s
+            num_ubicacion += 1
           elsif tipo == 'municipio'
-            info.each do |relacion|
-              nueva_linea["municipio_#{num_ubicacion}"] = pos['palabra']
-              nueva_linea["departamento_#{num_ubicacion}"] = relacion[0].to_s
-              num_ubicacion += 1
-            end
+            nueva_linea["municipio_#{num_ubicacion}"] = pos['palabra']
+            nueva_linea["departamento_#{num_ubicacion}"] = info[0].to_s
+            num_ubicacion += 1
           elsif tipo == 'departamento'
             nueva_linea["departamento_#{num_ubicacion}"] = pos['palabra']
             num_ubicacion += 1
@@ -145,14 +148,14 @@ end
 def pretty_print(resultado)
   resultado.each do |res|
     puts 'Texto:'
-    puts res['texto']
+    puts res[:texto]
 
-    res['posibilidades'].each do |posibilidad|
+    res[:posibilidades].each do |posibilidad|
       puts "\n"
-      puts "\tPalabra: #{posibilidad['palabra']}"
-      puts "\tContexto: #{posibilidad['contexto']['pre']} |" \
-           "#{posibilidad['palabra']}| #{posibilidad['contexto']['pos']}"
-      puts "\tRelaciones: #{posibilidad['relaciones']}"
+      puts "\tPalabra: #{posibilidad[:palabra]}"
+      puts "\tContexto: #{posibilidad[:contexto][:pre]} |" \
+           "#{posibilidad['palabra']}| #{posibilidad[:contexto][:pos]}"
+      puts "\tRelaciones: #{posibilidad[:relaciones]}"
     end
     puts "\n\n"
   end
@@ -197,13 +200,12 @@ vere.zip(relacion_veredas) do |val, rel|
   diccionario.agregar(val, rel)
 end
 
-# bsq.prt
 verif = diccionario.verificar(limpiar_str_array(tabla['text']))
 
 puts "tiempo en cargar y verificar : #{Time.now - start}"
-puts "guardando: "
+puts 'guardando: '
 
-# # guardar_json(verif, 'resultados')
+# guardar_json(verif, 'resultados')
 guardar_csv(tabla, verif, 'resultados')
 # pretty_print(verif)
 

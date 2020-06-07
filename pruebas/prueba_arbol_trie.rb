@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+# coding: utf-8
+
+# Autor inicial: Vladimir Támara Patiño <vtamara@pasosdeJesus.org>:   https://github.com/dhasane/analisis-palabras/commit/3055a69fad020f180a1beb6cb33a19d7a3138eb6
 
 require 'minitest/autorun'
 require_relative '../src/arbol_trie'

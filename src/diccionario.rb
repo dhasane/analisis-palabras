@@ -1,7 +1,7 @@
 
 require_relative 'arbol_trie.rb'
 
-# arbolito de palabras ~
+# Diccionario para la busqueda de palabras y su contexto
 class Diccionario
   def initialize(tam)
     @trie = ArbolTrie.new
