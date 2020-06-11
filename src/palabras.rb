@@ -44,6 +44,8 @@ end
 # en caso de haber varios espacios seguidos los unifica y quita
 # puntos en caso de encontrar palabras como 'a.m.' para dejarlo como 'am'
 def normalizar(str)
+  return str if str.nil?
+
   str.downcase
      .gsub(/[á]/, 'a')
      .gsub(/[é]/, 'e')
@@ -118,9 +120,10 @@ def guardar_csv(original, resultados, nombre)
 
           # esto posiblemente se puede hacer mucho mas inteligentemente
           if tipo == 'vereda'
+            puts info[1].to_s
             nueva_linea["vereda_#{num_ubicacion}"] = pos[:palabra]
             nueva_linea["municipio_#{num_ubicacion}"] = info[0].to_s
-            nueva_linea["departartamento_#{num_ubicacion}"] = info[1].to_s
+            nueva_linea["departamento_#{num_ubicacion}"] = info[1].to_s
             num_ubicacion += 1
           elsif tipo == 'municipio'
             nueva_linea["municipio_#{num_ubicacion}"] = pos['palabra']
@@ -133,6 +136,49 @@ def guardar_csv(original, resultados, nombre)
         end
       end
       csv << nueva_linea
+    end
+  end
+end
+
+def guardarCSVOtro(origen, diccionario, nombre)
+  CSV.open("#{nombre}.csv", 'wb') do |csv|
+    origen[1..-1].each do |relato|
+      next if relato['text'].nil?
+
+      resultado = diccionario.verificar_texto(normalizar(relato['text']))
+
+      resultado.each do |posibilidad|
+        posibilidad[:relaciones].each do |relacion|
+          tipo = relacion[0]
+          info = relacion[1..-1]
+
+          departamento = nil
+          municipio = nil
+          vereda = nil
+
+          if tipo == 'vereda'
+            vereda = posibilidad[:palabra]
+            municipio = info[0].to_s
+            departamento = info[1].to_s
+          elsif tipo == 'municipio'
+            municipio = posibilidad[:palabra]
+            departamento = info[0].to_s
+          elsif tipo == 'departamento'
+            departamento = posibilidad[:palabra]
+          end
+
+          csv << [
+            relato['id'],
+            relato['text'],
+            normalizar(relato['dep_coded']),
+            normalizar(relato['mun_coded']),
+            normalizar(relato['vereda']),
+            departamento,
+            municipio,
+            vereda
+          ]
+        end
+      end
     end
   end
 end
@@ -200,13 +246,13 @@ vere.zip(relacion_veredas) do |val, rel|
   diccionario.agregar(val, rel)
 end
 
-verif = diccionario.verificar(limpiar_str_array(tabla['text']))
+guardarCSVOtro(tabla, diccionario, 'prueba')
 
-puts "tiempo en cargar y verificar : #{Time.now - start}"
-puts 'guardando: '
-
+# verif = diccionario.verificar(limpiar_str_array(tabla['text']))
+# puts "tiempo en cargar y verificar : #{Time.now - start}"
+# puts 'guardando: '
 # guardar_json(verif, 'resultados')
-guardar_csv(tabla, verif, 'resultados')
+# guardar_csv(tabla, verif, 'resultados')
 # pretty_print(verif)
 
 finish = Time.now
