@@ -7,7 +7,7 @@ require 'csv'
 require 'json'
 require 'optparse'
 
-require_relative 'diccionario.rb'
+require 'diccionario'
 
 # carga los datos de un archivo csv
 def cargar(nombre)
@@ -140,12 +140,12 @@ def guardar_csv(original, resultados, nombre)
   end
 end
 
-def guardarCSVOtro(origen, diccionario, nombre)
+def guardarCSVOtro(origen, diccionario, nombre, tam_contexto)
   CSV.open("#{nombre}.csv", 'wb') do |csv|
     origen[1..-1].each do |relato|
       next if relato['text'].nil?
 
-      resultado = diccionario.verificar_texto(normalizar(relato['text']))
+      resultado = diccionario.verificar_texto(normalizar(relato['text']), tam_contexto)
 
       resultado.each do |posibilidad|
         posibilidad[:relaciones].each do |relacion|
@@ -219,7 +219,7 @@ start = Time.now
 informacion = cargar(i_f)
 tabla = cargar(i_a)
 
-diccionario = Diccionario.new(5)
+diccionario = Diccionario.new
 
 dep  = limpiar(informacion['departamento'], [])
 muni = limpiar(informacion['municipio'], [])
@@ -246,7 +246,9 @@ vere.zip(relacion_veredas) do |val, rel|
   diccionario.agregar(val, rel)
 end
 
-guardarCSVOtro(tabla, diccionario, 'prueba')
+tam_contexto = 5
+
+guardarCSVOtro(tabla, diccionario, 'prueba', tam_contexto)
 
 # verif = diccionario.verificar(limpiar_str_array(tabla['text']))
 # puts "tiempo en cargar y verificar : #{Time.now - start}"
