@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 # coding: utf-8
 
-require 'byebug'
-
 require 'csv'
 require 'json'
 require 'optparse'
@@ -94,8 +92,6 @@ end
 
 def guardar_csv(original, resultados, nombre)
   CSV.open("#{nombre}.csv", 'wb') do |csv|
-
-
     # copia valores anteriores
     mantener = %w[id dep_coded mun_coded cp_coded vereda text]
     # inicializa en nill
@@ -141,13 +137,17 @@ def guardar_csv(original, resultados, nombre)
 end
 
 def guardarCSVOtro(origen, diccionario, nombre, tam_contexto)
+  puts "creando archivo #{nombre}.csv"
   CSV.open("#{nombre}.csv", 'wb') do |csv|
-    origen[1..-1].each do |relato|
+    origen.each do |relato|
       next if relato['text'].nil?
 
-      resultado = diccionario.verificar_texto(normalizar(relato['text']), tam_contexto)
+      resultado = diccionario.verificar_texto(
+        normalizar(relato['text']),
+        tam_contexto
+      )
 
-      resultado.each do |posibilidad|
+      resultado.each do |_llave, posibilidad|
         posibilidad[:relaciones].each do |relacion|
           tipo = relacion[0]
           info = relacion[1..-1]
@@ -225,6 +225,7 @@ dep  = limpiar(informacion['departamento'], [])
 muni = limpiar(informacion['municipio'], [])
 vere = limpiar(informacion['vereda'], ['sin definir'])
 
+
 relacion_veredas = []
 relacion_municipios = []
 relacion_departamento = []
@@ -248,9 +249,17 @@ end
 
 tam_contexto = 5
 
+# verificar repetido
+# un resultado salio en 0
+# hacer pruebas de regresion para diccionario
+# hacer con integracion continua de github las pruebas
+#   - action de github - semaphore - travis
 guardarCSVOtro(tabla, diccionario, 'prueba', tam_contexto)
 
-# verif = diccionario.verificar(limpiar_str_array(tabla['text']))
+# verif = diccionario.verificar(
+#   limpiar_str_array(tabla['text']),
+#   tam_contexto
+# )
 # puts "tiempo en cargar y verificar : #{Time.now - start}"
 # puts 'guardando: '
 # guardar_json(verif, 'resultados')
