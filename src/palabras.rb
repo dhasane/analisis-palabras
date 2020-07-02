@@ -6,7 +6,7 @@ require 'json'
 require 'optparse'
 require 'pp'
 
-require 'buscador-palabras'
+require 'buscador_palabras'
 
 # carga los datos de un archivo csv
 def cargar(nombre)
@@ -225,28 +225,6 @@ def guardar_json(objeto, nombre)
   end
 end
 
-# i_f = []
-# i_a = []
-output_name = 'resultado'
-OptionParser.new do |opt|
-  # opt.on('-f', '--file FILENAME') { |o| i_f << o }
-  # opt.on('-a', '--analize FILENAME') { |o| i_a << o }
-  opt.on('-o', '--output FILE') { |o| output_name = o }
-end.parse!
-#
-# i_f.each { |v| puts v.to_s }
-# i_a.each { |v| puts v.to_s }
-#
-
-start = Time.now
-buscador = BuscadorPalabras.new
-
-# informacion = []
-# tabla = []
-#
-# i_f.each { |v| informacion << cargar(v) }
-# i_a.each { |v| tabla << cargar(v) }
-
 def cargar_csv_a_buscador(
       buscador,
       dep, muni, vere,
@@ -275,13 +253,22 @@ def cargar_csv_a_buscador(
   buscador
 end
 
-tabla = cargar('./datos/analizar.csv')
+# i_f = []
+i_a = []
+output_name = 'resultado'
+OptionParser.new do |opt|
+  # opt.on('-f', '--file FILENAME') { |o| i_f << o }
+  opt.on('-a', '--analize FILENAME') { |o| i_a = o }
+  opt.on('-o', '--output FILENAME') { |o| output_name = o }
+end.parse!
+
+start = Time.now
+buscador = BuscadorPalabras.new
+
+tabla = cargar(i_a)
 
 veredas = cargar('./datos/veredas.csv')
 centros_poblados = cargar('./datos/DIVIPOLA_2020627.csv')
-# Código departamento,Código municipio,Código centro poblado,
-# Nombre departamento,Nombre municipio,Nombre centro poblado,Tipo centro
-# poblado,Longitud,Latitud,Distrito,Tipo de municipio,Área metropolitana
 
 buscador = cargar_csv_a_buscador(
   buscador,
