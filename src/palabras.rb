@@ -4,8 +4,9 @@
 require 'csv'
 require 'json'
 require 'optparse'
+require 'pp'
 
-require 'diccionario'
+require 'buscador-palabras'
 
 # carga los datos de un archivo csv
 def cargar(nombre)
@@ -136,18 +137,21 @@ def guardar_csv(original, resultados, nombre)
   end
 end
 
-def guardarCSVOtro(origen, diccionario, nombre, tam_contexto)
+def guardarCSVOtro(origen, buscador, nombre, tam_contexto)
   puts "creando archivo #{nombre}.csv"
   CSV.open("#{nombre}.csv", 'wb') do |csv|
     origen.each do |relato|
       next if relato['text'].nil?
 
-      resultado = diccionario.verificar_texto(
+      resultado = buscador.analizar(
         normalizar(relato['text']),
         tam_contexto
       )
 
       resultado.each do |_llave, posibilidad|
+        # puts "\n\n\n"
+        # pp posibilidad
+
         posibilidad[:relaciones].each do |relacion|
           tipo = relacion[0]
           info = relacion[1..-1]
@@ -165,22 +169,53 @@ def guardarCSVOtro(origen, diccionario, nombre, tam_contexto)
             departamento = info[0].to_s
           elsif tipo == 'departamento'
             departamento = posibilidad[:palabra]
+          elsif tipo == 'centro poblado'
+            # TODO
           end
+
+          dep_coded = normalizar(relato['dep_coded'])
+          mun_coded = normalizar(relato['mun_coded'])
+          ver_coded = normalizar(relato['vereda'])
+
+          principal = (tipo <=> posibilidad[:contexto][0][:pre][-1]).zero? ? 1 : 0
 
           csv << [
             relato['id'],
             relato['text'],
-            normalizar(relato['dep_coded']),
-            normalizar(relato['mun_coded']),
-            normalizar(relato['vereda']),
+            dep_coded,
+            mun_coded,
+            ver_coded,
             departamento,
             municipio,
-            vereda
+            vereda,
+            coincidencia(
+              [
+                [dep_coded, departamento],
+                [mun_coded, municipio],
+                [ver_coded, vereda]
+              ]
+            ),
+            principal
           ]
         end
       end
     end
   end
+end
+
+def coincidencia(lista_coincidencias)
+  # contador coincidencias
+  cc = 0
+  lista_coincidencias.each do |c|
+    if c[0] == c[1]
+      cc += 1
+    elsif cc.zero?
+      return 'falso'
+    else
+      return 'parcial'
+    end
+  end
+  'verdadero'
 end
 
 def guardar_json(objeto, nombre)
@@ -190,81 +225,88 @@ def guardar_json(objeto, nombre)
   end
 end
 
-# imprime los resultados conseguidos de forma que sea facil leerlos
-def pretty_print(resultado)
-  resultado.each do |res|
-    puts 'Texto:'
-    puts res[:texto]
-
-    res[:posibilidades].each do |posibilidad|
-      puts "\n"
-      puts "\tPalabra: #{posibilidad[:palabra]}"
-      puts "\tContexto: #{posibilidad[:contexto][:pre]} |" \
-           "#{posibilidad['palabra']}| #{posibilidad[:contexto][:pos]}"
-      puts "\tRelaciones: #{posibilidad[:relaciones]}"
-    end
-    puts "\n\n"
-  end
-end
-
-i_f = []
-i_a = []
+# i_f = []
+# i_a = []
+output_name = 'resultado'
 OptionParser.new do |opt|
-  opt.on('-f', '--file FILENAME') { |o| i_f = o }
-  opt.on('-a', '--analize FILENAME') { |o| i_a = o }
+  # opt.on('-f', '--file FILENAME') { |o| i_f << o }
+  # opt.on('-a', '--analize FILENAME') { |o| i_a << o }
+  opt.on('-o', '--output FILE') { |o| output_name = o }
 end.parse!
+#
+# i_f.each { |v| puts v.to_s }
+# i_a.each { |v| puts v.to_s }
+#
 
 start = Time.now
+buscador = BuscadorPalabras.new
 
-informacion = cargar(i_f)
-tabla = cargar(i_a)
+# informacion = []
+# tabla = []
+#
+# i_f.each { |v| informacion << cargar(v) }
+# i_a.each { |v| tabla << cargar(v) }
 
-diccionario = Diccionario.new
+def cargar_csv_a_buscador(
+      buscador,
+      dep, muni, vere,
+      rel1, rel2, rel3
+    )
 
-dep  = limpiar(informacion['departamento'], [])
-muni = limpiar(informacion['municipio'], [])
-vere = limpiar(informacion['vereda'], ['sin definir'])
+  relacion_veredas = []
+  relacion_municipios = []
+  relacion_departamento = []
 
+  dep.zip(muni) do |d, m|
+    relacion_departamento << [rel1]
+    relacion_municipios << [rel2, d]
+    relacion_veredas << [rel3, m, d]
+  end
 
-relacion_veredas = []
-relacion_municipios = []
-relacion_departamento = []
-
-dep.zip(muni) do |d, m|
-  relacion_departamento << ['departamento']
-  relacion_municipios << ['municipio', d]
-  relacion_veredas << ['vereda', m, d]
+  dep.zip(relacion_departamento) do |val, rel|
+    buscador.agregar(val, rel)
+  end
+  muni.zip(relacion_municipios) do |val, rel|
+    buscador.agregar(val, rel)
+  end
+  vere.zip(relacion_veredas) do |val, rel|
+    buscador.agregar(val, rel)
+  end
+  buscador
 end
 
-# esto se podria arreglar, pero por el momento para probar
-dep.zip(relacion_departamento) do |val, rel|
-  diccionario.agregar(val, rel)
-end
-muni.zip(relacion_municipios) do |val, rel|
-  diccionario.agregar(val, rel)
-end
-vere.zip(relacion_veredas) do |val, rel|
-  diccionario.agregar(val, rel)
-end
+tabla = cargar('./datos/analizar.csv')
+
+veredas = cargar('./datos/veredas.csv')
+centros_poblados = cargar('./datos/DIVIPOLA_2020627.csv')
+# Código departamento,Código municipio,Código centro poblado,
+# Nombre departamento,Nombre municipio,Nombre centro poblado,Tipo centro
+# poblado,Longitud,Latitud,Distrito,Tipo de municipio,Área metropolitana
+
+buscador = cargar_csv_a_buscador(
+  buscador,
+  limpiar(veredas['departamento'], []),
+  limpiar(veredas['municipio'], []),
+  limpiar(veredas['vereda'], ['sin definir']),
+  'departamento',
+  'municipio',
+  'vereda'
+)
+buscador = cargar_csv_a_buscador(
+  buscador,
+  limpiar(centros_poblados['Nombre departamento'], []),
+  limpiar(centros_poblados['Nombre municipio'], []),
+  limpiar(centros_poblados['Nombre centro poblado'], []),
+  'departamento',
+  'municipio',
+  'centro poblado'
+)
 
 tam_contexto = 5
 
-# verificar repetido
-# un resultado salio en 0
-# hacer pruebas de regresion para diccionario
 # hacer con integracion continua de github las pruebas
 #   - action de github - semaphore - travis
-guardarCSVOtro(tabla, diccionario, 'prueba', tam_contexto)
-
-# verif = diccionario.verificar(
-#   limpiar_str_array(tabla['text']),
-#   tam_contexto
-# )
-# puts "tiempo en cargar y verificar : #{Time.now - start}"
-# puts 'guardando: '
-# guardar_json(verif, 'resultados')
-# guardar_csv(tabla, verif, 'resultados')
-# pretty_print(verif)
+guardarCSVOtro(tabla, buscador, output_name, tam_contexto)
 
 finish = Time.now
 puts "demora total : #{finish - start}"
