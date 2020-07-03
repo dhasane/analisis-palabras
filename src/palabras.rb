@@ -169,12 +169,18 @@ def guardarCSVOtro(origen, buscador, nombre, tam_contexto)
           elsif tipo == 'departamento'
             departamento = posibilidad[:palabra]
           elsif tipo == 'centro poblado'
-            # TODO
+            centro_poblado = posibilidad[:palabra]
+            municipio = info[0].to_s
+            departamento = info[1].to_s
           end
 
           dep_coded = normalizar(relato['dep_coded'])
           mun_coded = normalizar(relato['mun_coded'])
           ver_coded = normalizar(relato['vereda'])
+          cp_coded  = normalizar(relato['cp_coded'])
+
+          id,dep_cambia_a,mun_cambia_a,cp_cambia_a,tipo_ubicacion,
+
 
           principal = (tipo <=> posibilidad[:contexto][0][:pre][-1]).zero? ? 1 : 0
 
@@ -183,15 +189,19 @@ def guardarCSVOtro(origen, buscador, nombre, tam_contexto)
             relato['text'],
             dep_coded,
             mun_coded,
-            ver_coded,
+            cp_coded,
+            # ver_coded,
             departamento,
             municipio,
+            centro_poblado,
             vereda,
             coincidencia(
               [
                 [dep_coded, departamento],
                 [mun_coded, municipio],
-                [ver_coded, vereda]
+                [cp_coded, centro_poblado],
+                # [ver_coded, vereda]
+
               ]
             ),
             principal
