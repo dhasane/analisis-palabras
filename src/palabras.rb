@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 # coding: utf-8
 
+# require 'byebug'
 require 'csv'
 require 'json'
 require 'optparse'
@@ -46,11 +47,11 @@ def normalizar(str)
   return str if str.nil?
 
   str.downcase
-     .gsub(/[á]/, 'a')
-     .gsub(/[é]/, 'e')
-     .gsub(/[í]/, 'i')
-     .gsub(/[ó]/, 'o')
-     .gsub(/[úü]/, 'u')
+     .gsub(/[Áá]/, 'a')
+     .gsub(/[Éé]/, 'e')
+     .gsub(/[Íí]/, 'i')
+     .gsub(/[Óó]/, 'o')
+     .gsub(/[ÚúÜü]/, 'u')
      .gsub('-', ' ')
      .delete('^a-zñÑA-Z0-9. ')
      .gsub(/\s+/, ' ')
@@ -149,8 +150,6 @@ def guardarCSVOtro(origen, buscador, nombre, tam_contexto)
       )
 
       resultado.each do |_llave, posibilidad|
-        # puts "\n\n\n"
-        # pp posibilidad
 
         posibilidad[:relaciones].each do |relacion|
           tipo = relacion[0]
